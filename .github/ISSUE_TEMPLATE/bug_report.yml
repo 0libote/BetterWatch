@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a problem with skipping, Trakt, or the extension workspace.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove account details, tokens, cookies, client secrets, and private viewing history from logs and screenshots.
+        Report security vulnerabilities through the private link in SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: BetterWatch version
+      description: Include the release tag and the version shown in chrome://extensions if they differ.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Chrome version and operating system
+    validations:
+      required: true
+  - type: dropdown
+    id: service
+    attributes:
+      label: Affected service or area
+      options:
+        - Netflix
+        - Prime Video
+        - HBO Max
+        - Trakt connection or history
+        - Workspace or installation
+        - Build or tooling
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: For streaming issues, include the site domain, UI language, and relevant skip/tracking preferences.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Redacted logs or screenshots
+      description: The extension Errors view is available in chrome://extensions with Developer mode enabled.

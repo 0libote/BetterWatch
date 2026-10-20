@@ -2,7 +2,10 @@
 
 ## Automated
 
-`bun run check` runs TypeScript under Bun and the native Bun test runner.
+`bun run check` validates repository configuration, runs TypeScript under Bun,
+and uses the native Bun test runner. Configuration checks cover the pinned Bun
+runtime/types, Chrome version format, YAML syntax, a single Bun lockfile, and
+accidentally tracked local environment files.
 Tests use `bun:test`; `bun run test` enables `--isolate` so each file has its
 own globals and module cache, including its mock Chrome APIs. DOM tests exercise real skip
 engine code against representative upstream player selectors in jsdom.
@@ -33,6 +36,18 @@ Chrome can load them as classic content scripts and a classic service worker.
 CSS is extracted into `app.css`, linked by the only HTML page. Build validation
 must also confirm all manifest-referenced resources exist, only the three
 service bundles are present, and the ZIP contains attribution/license files.
+
+`bun run package:check` independently decompresses the ZIP, compares its full
+file list and every file's bytes with `build/chrome`, and checks `SHA256SUMS`.
+Regression tests require it to reject stale checksums, missing/extra files,
+and altered file contents. `bun run smoke:preview` starts the actual Bun
+server on an ephemeral local port, checks the workspace/assets/MIME types,
+confirms the Chrome shim exists only in served HTML, and exercises missing,
+malformed, and traversal paths before stopping the server.
+
+CI repeats these checks on Linux, macOS, and Windows. The workflow-lint job
+uses actionlint, and release-note tests cover version-tag mismatches, Chrome
+version limits, changelog extraction, and initial/subsequent release details.
 
 `bun run preview` uses `Bun.serve` to serve the compiled single `app.html` workspace with
 mock Chrome APIs. Browser inspection checks desktop and narrow layouts, preference changes,

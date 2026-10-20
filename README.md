@@ -1,5 +1,7 @@
 # BetterWatch
 
+[![CI](https://github.com/0libote/BetterWatch/actions/workflows/ci.yml/badge.svg)](https://github.com/0libote/BetterWatch/actions/workflows/ci.yml)
+
 A Chrome Manifest V3 extension combining auto-skip with Trakt tracking.
 Netflix is the primary target. Prime Video and HBO Max are included because
 both upstream projects list them with skip support and Trakt scrobbling plus
@@ -33,21 +35,26 @@ it as an unpacked extension. No Firefox build or hosted backend is included.
 
 Every tag pushed to GitHub triggers `.github/workflows/release.yml`. It installs
 the locked dependencies, runs the type checks and tests, builds and validates
-the Chrome extension, then publishes a GitHub Release for that tag with
-`betterwatch-chrome.zip` and `SHA256SUMS`. Re-running the workflow updates the
-assets on the existing release. No additional GitHub secrets are required;
+the Chrome extension, verifies the ZIP and checksum, then publishes a GitHub
+Release with `betterwatch-chrome.zip` and `SHA256SUMS`. Descriptions include
+curated changes, commit links, installation/upgrade steps, and known limits.
+Re-running the workflow updates both assets and the generated description.
+No additional GitHub secrets are required;
 Trakt credentials are configured locally after installing the extension.
 
-The extension version comes from `package.json`. To bump it, create a matching
-tag, and publish both the version commit and tag:
+The extension version comes from `package.json`. Record changes under the next
+version in `CHANGELOG.md` and commit them. From a clean tree, bump the version
+and publish both the version commit and matching tag:
 
 ```sh
 bun pm version patch
 git push origin main --follow-tags
 ```
 
-Tags with other names also trigger a release and use the package version from
-their tagged commit. Creating a local tag alone does not publish anything.
+Numeric version tags (with or without `v`) must agree with the package version.
+Other named tags use the package version from their tagged commit. Creating a
+local tag alone does not publish anything. See [docs/RELEASING.md](docs/RELEASING.md)
+for the full process and the historical 0.1.1 version metadata discrepancy.
 
 ## One workspace
 
@@ -137,6 +144,8 @@ you select items and sync them in the history screen.
 ```sh
 bun run check      # TypeScript and isolated Bun behavior tests
 bun run build      # Production extension, ZIP, and SHA-256 checksum
+bun run package:check # Check every ZIP file and its checksum
+bun run smoke:preview # Exercise the Bun preview HTTP server
 bun run dev        # Watch and rebuild an unpacked Chrome extension
 bun run preview    # Bun UI harness at http://localhost:4173
 ```
@@ -158,6 +167,19 @@ scrobble, or exercise a real streaming player. Harness code is not packaged.
 
 Implementation notes and live verification steps are in
 [docs/TESTING.md](docs/TESTING.md) and [docs/DESIGN.md](docs/DESIGN.md).
+
+## Repository checks and contributions
+
+CI checks pull requests and main on Linux, macOS, and Windows using the pinned
+Bun version and frozen lockfile. It runs configuration/type/behavior checks,
+builds the extension, verifies every ZIP file and its checksum, exercises the
+preview server, and generates a release-description preview. The Linux job
+uploads those artifacts for 14 days. Workflows are checked with actionlint;
+Dependabot proposes weekly Bun dependency and GitHub Actions updates.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CHANGELOG.md](CHANGELOG.md), and
+[SECURITY.md](SECURITY.md). Bug reports and feature requests have issue forms;
+security reports use GitHub's private reporting channel.
 
 ## Upstream projects and licensing
 

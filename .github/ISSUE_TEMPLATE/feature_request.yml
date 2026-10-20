@@ -1,0 +1,16 @@
+name: Feature request
+description: Suggest an improvement to BetterWatch.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed behavior
+      description: Include the affected service or workspace screen and any alternatives you considered.
+    validations:
+      required: true

@@ -1,6 +1,6 @@
 {
   "name": "betterwatch",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Chrome auto-skip and Trakt for Netflix, Prime Video, and HBO Max.",
   "author": "BetterWatch contributors",
   "private": true,
@@ -9,8 +9,13 @@
     "dev": "bun scripts/build.ts --watch",
     "typecheck": "bun --bun tsc --noEmit",
     "test": "bun test --isolate",
-    "check": "bun run typecheck && bun run test",
-    "preview": "bun scripts/preview.ts"
+    "check": "bun run repo:check && bun run typecheck && bun run test",
+    "preview": "bun scripts/preview.ts",
+    "repo:check": "bun scripts/check-repo.ts",
+    "package:check": "bun scripts/verify-package.ts",
+    "smoke:preview": "bun scripts/smoke-preview.ts",
+    "release:check": "bun scripts/release-notes.ts --check",
+    "release:notes": "bun scripts/release-notes.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -38,6 +43,7 @@
     "@types/react-dom": "^19.1.0",
     "@types/webextension-polyfill": "^0.9.2",
     "archiver": "^5.3.2",
+    "fflate": "^0.8.3",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3"
   },
@@ -45,5 +51,13 @@
   "packageManager": "bun@1.4.3",
   "engines": {
     "bun": ">=1.4.3"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/0libote/BetterWatch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0libote/BetterWatch/issues"
+  },
+  "homepage": "https://github.com/0libote/BetterWatch#readme"
 }
