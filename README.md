@@ -52,7 +52,10 @@ git push origin main --follow-tags
 ```
 
 Numeric version tags (with or without `v`) must agree with the package version.
-Other named tags use the package version from their tagged commit. Creating a
+If they don't, the workflow syncs `package.json` (adding a dated changelog
+section when one is missing) to the tag before building, then pushes that fix
+to the default branch after publishing. Other named tags use the package
+version from their tagged commit. Creating a
 local tag alone does not publish anything. See [docs/RELEASING.md](docs/RELEASING.md)
 for the full process and the historical 0.1.1 version metadata discrepancy.
 

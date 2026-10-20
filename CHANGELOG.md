@@ -17,6 +17,9 @@ section before creating the matching release tag.
 - Correct the current package version to 0.1.1 and reject future numeric release
   tags that disagree with the extension version. Historical 0.1.1 assets still
   report 0.1.0; published artifacts remain unchanged.
+- Sync `package.json` (and add a dated changelog section when missing) to
+  numeric release tags in the tag workflow, and push the fix to the default
+  branch after publishing, so a forgotten version bump no longer fails releases.
 - Ignore Bun's additional local `.env` variants and handle malformed preview
   URLs with a useful HTTP error.
 

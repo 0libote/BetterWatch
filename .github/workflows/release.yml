@@ -24,7 +24,7 @@ jobs:
       - name: Check out tagged source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          persist-credentials: false
+          persist-credentials: true
           fetch-depth: 0
 
       - name: Set up Bun
@@ -34,6 +34,11 @@ jobs:
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
+
+      - name: Sync extension version to release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: bun run release:sync
 
       - name: Verify release tag and extension version agree
         env:
@@ -72,3 +77,32 @@ jobs:
               --verify-tag --title "BetterWatch $RELEASE_TAG" \
               --notes-file dist/RELEASE_NOTES.md
           fi
+
+      - name: Push version sync commit to default branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ -z "$(git status --porcelain -- package.json CHANGELOG.md)" ]; then
+            echo 'Version files already agree with the tag; nothing to push.'
+            exit 0
+          fi
+          # The tag checkout is detached, so discard the working-tree sync and
+          # re-apply it on top of the latest default branch instead.
+          git stash push -m "release version sync for $RELEASE_TAG" -- package.json CHANGELOG.md \
+            || git checkout -- package.json CHANGELOG.md
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git fetch origin "$DEFAULT_BRANCH"
+          git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
+          bun scripts/sync-release-version.ts --no-downgrade
+          if [ -z "$(git status --porcelain -- package.json CHANGELOG.md)" ]; then
+            echo 'Default branch is already ahead of the tag; nothing to push.'
+            exit 0
+          fi
+          git add package.json CHANGELOG.md
+          git commit -m "chore(release): sync extension version to $RELEASE_TAG" \
+            -m 'Applied by the tag release workflow so package.json and CHANGELOG.md agree with the published tag.'
+          git push origin "HEAD:$DEFAULT_BRANCH" \
+            || echo '::warning::Published the release but could not push the version sync commit; sync it manually.'

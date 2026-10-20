@@ -15,6 +15,7 @@
     "package:check": "bun scripts/verify-package.ts",
     "smoke:preview": "bun scripts/smoke-preview.ts",
     "release:check": "bun scripts/release-notes.ts --check",
+    "release:sync": "bun scripts/sync-release-version.ts",
     "release:notes": "bun scripts/release-notes.ts"
   },
   "dependencies": {
