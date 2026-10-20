@@ -25,6 +25,26 @@ npm run build
 The same build creates `dist/betterwatch-chrome.zip`. Unzip it before loading
 it as an unpacked extension. No Firefox build or hosted backend is included.
 
+## Release a version
+
+Every tag pushed to GitHub triggers `.github/workflows/release.yml`. It installs
+the locked dependencies, runs the type checks and tests, builds and validates
+the Chrome extension, then publishes a GitHub Release for that tag with
+`betterwatch-chrome.zip` and `SHA256SUMS`. Re-running the workflow updates the
+assets on the existing release. No additional GitHub secrets are required;
+Trakt credentials are configured locally after installing the extension.
+
+The extension version comes from `package.json`. To bump it, create a matching
+tag, and publish both the version commit and tag:
+
+```sh
+npm version patch
+git push origin main --follow-tags
+```
+
+Tags with other names also trigger a release and use the package version from
+their tagged commit. Creating a local tag alone does not publish anything.
+
 ## Connect Trakt
 
 Auto-skip works without a Trakt account or application configuration.
