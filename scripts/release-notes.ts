@@ -14,7 +14,7 @@ export function checkChromeVersion(version: string) {
   );
 }
 
-function tagVersion(tag: string) {
+export function tagVersion(tag: string) {
   return /^v?(\d+(?:\.\d+){0,3})(?:-[\dA-Za-z.-]+)?(?:\+[\dA-Za-z.-]+)?$/.exec(
     tag,
   )?.[1];
