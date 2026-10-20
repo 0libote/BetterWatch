@@ -162,7 +162,7 @@ export type MessagingError =
 
 class _Messaging {
 	/**
-	 * Returning undefined from a message handler means that the response will not be sent back. This is useful for situations where a message is received in multiple places (background, popup, ...) but only one of them is responsible for responding, while the others simply receive the message and do something with it.
+	 * Returning undefined from a message handler means that the response will not be sent back. This is useful for situations where a message is received in multiple places (background, extension page, ...) but only one of them is responsible for responding, while the others simply receive the message and do something with it.
 	 */
 	private messageHandlers: MessageHandlers = {
 		'dispatch-event': (message) =>
@@ -251,7 +251,7 @@ class _Messaging {
 	}
 
 	/**
-	 * Sends a message to all extension pages (so it will be sent to the background page, the popup page, the history page and the options page, if all of them are open).
+	 * Sends a message to all extension pages (so it will be sent to the background worker and any open workspace tabs).
 	 */
 	async toExtension<T extends MessageRequest>(message: T): Promise<ReturnType<T>> {
 		let response = null as ReturnType<T>;

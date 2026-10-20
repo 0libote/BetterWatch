@@ -21,6 +21,8 @@ npm run build
 1. Open `chrome://extensions` and enable **Developer mode**.
 2. Choose **Load unpacked** and select this repository's `build/chrome` folder.
 3. Pin BetterWatch, then reload any streaming tabs that were already open.
+4. Click the toolbar icon to open the full-page workspace. Clicking again
+   focuses the existing workspace tab.
 
 The same build creates `dist/betterwatch-chrome.zip`. Unzip it before loading
 it as an unpacked extension. No Firefox build or hosted backend is included.
@@ -45,17 +47,38 @@ git push origin main --follow-tags
 Tags with other names also trigger a release and use the package version from
 their tagged commit. Creating a local tag alone does not publish anything.
 
+## One workspace
+
+All controls live in one extension page, `app.html`:
+
+- **Overview** shows the actual playback and Trakt connection state, service
+  preferences, and Netflix quick controls.
+- **Auto-skip** gives each service its own controls and playback preview.
+- **Trakt connection** guides registration, credentials, authorization, and
+  per-service tracking without leaving the workspace.
+- **Watch history** loads on request, supports search and selection, corrects
+  matches and watched dates, and imports selected items. Scheduled results are
+  available in the same view.
+- **Settings** controls appearance, scheduled imports, import rules, optional
+  extras, and cached matches. Dark mode is the initial default.
+
+The extension has no toolbar popup and no separate options/history HTML pages.
+Chrome’s extension options open the Settings section of this same workspace.
+The HTML page runs as part of the installed extension; opening it directly as
+a `file://` document cannot provide Chrome extension APIs.
+
 ## Connect Trakt
 
 Auto-skip works without a Trakt account or application configuration.
 
-1. Open BetterWatch **Settings**. Copy the redirect URI shown there.
+1. Open **Trakt connection** in the BetterWatch workspace. Copy the redirect
+   URI shown in the first step.
 2. Create an application at https://trakt.tv/oauth/applications/new with that
    exact redirect URI and the `/scrobble` permission enabled.
 3. Enter the application's client ID and client secret into BetterWatch
-   settings and choose **Save Trakt setup**.
-4. Reopen the popup, choose **Connect Trakt**, and authorize your application.
-5. Start a movie or episode. The popup shows the title matched on Trakt; use
+   connection page and choose **Save application**.
+4. Choose **Connect Trakt** in the last step and authorize your application.
+5. Start a movie or episode. The overview shows the title matched on Trakt; use
    the correction control if it identifies the wrong title.
 
 The redirect URI depends on Chrome's extension ID. Keeping the unpacked
@@ -63,8 +86,8 @@ folder in the same location keeps that ID stable; if it changes, update your
 Trakt application's redirect URI. App credentials and access/refresh tokens
 stay in this profile's local extension storage, outside Chrome Sync. The
 client secret in a browser extension is not a confidential server secret.
-Changing app credentials disconnects the current session. Disconnect in the
-popup revokes the token through Trakt.
+Changing app credentials disconnects the current session. Disconnect on the
+connection page revokes the token through Trakt.
 
 For a developer-managed build, `.env.example` lists optional build-time
 credentials. Local values entered in settings override those build defaults.
@@ -80,9 +103,9 @@ Do not distribute a personal credential-bearing build or commit `.env`.
   A disabled service or action takes effect in open tabs.
 - Trakt start, pause/resume, stop, progress, title matching, and corrections
   retain Universal Trakt Scrobbler's implementation.
-- **Review watch history** retains history loading, match correction, and
+- **Watch history** provides history loading, match/date correction, and
   syncing selected watched items to Trakt. Scheduled history sync is opt-in
-  in settings; it is off by default.
+  in Settings; it is off by default.
 
 Trakt scrobbling and history access default enabled for the three services.
 History is not imported automatically unless scheduled sync is enabled or
@@ -117,7 +140,7 @@ npm run preview    # Local UI harness at http://localhost:4173
 ```
 
 Reload the extension in `chrome://extensions` after a rebuild and refresh
-streaming tabs. The UI harness serves compiled extension pages using mock
+streaming tabs. The UI harness serves the compiled workspace using mock
 Chrome APIs. It verifies layout and interactions; it cannot authorize Trakt,
 scrobble, or exercise a real streaming player. Harness code is not packaged.
 

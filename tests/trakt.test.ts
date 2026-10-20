@@ -120,3 +120,11 @@ test('playback detection waits for Trakt login and resumes in an already open ta
   delete local.auth;await events.tick();assert.equal(parsed,0);
   local.auth = auth;await events.tick();assert.equal(parsed,1);
 });
+test('turning off Chrome Trakt tracking does not revoke streaming access required by auto-skip',async()=>{
+  BrowserStorage.options={theme:'dark',showNotifications:false,sendReceiveSuggestions:false,loadImages:false,allowRollbar:false,grantCookies:false,services:{netflix:{scrobble:true,sync:true,autoSync:false,autoSyncDays:7,lastSync:0,lastSyncId:''}}} as import('../src/common/BrowserStorage').StorageValuesOptions;
+  BrowserStorage.optionsDetails={services:{id:'services',type:'custom',value:BrowserStorage.options.services,doShow:true}} as import('../src/common/BrowserStorage').OptionsDetails;
+  Shared.events={dispatch:async()=>{}} as unknown as typeof Shared.events;
+  await BrowserStorage.saveOptions({services:{netflix:{scrobble:false}}});
+  assert.equal(local.options.services.netflix.scrobble,false);
+  assert.equal(local.options.services.netflix.sync,true);
+});

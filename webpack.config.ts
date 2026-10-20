@@ -19,8 +19,8 @@ const manifest = {
   description: 'Auto-skip intros, recaps and credits, and track your watching with Trakt.',
   icons: { 16: 'images/betterwatch-16.png', 48: 'images/betterwatch-48.png', 128: 'images/betterwatch-128.png' },
   background: { service_worker: 'background.js' },
-  action: { default_popup: 'popup.html', default_title: 'BetterWatch', default_icon: 'images/betterwatch-48.png' },
-  options_ui: { page: 'options.html', open_in_tab: true },
+  action: { default_title: 'BetterWatch', default_icon: 'images/betterwatch-48.png' },
+  options_ui: { page: 'app.html#/settings', open_in_tab: true },
   permissions: ['alarms', 'identity', 'scripting', 'storage', 'unlimitedStorage'],
   optional_permissions: ['notifications'],
   host_permissions: [...hosts, 'https://*.trakt.tv/*', 'https://*.themoviedb.org/*', 'https://*.uts.rafaelgomes.xyz/*'],
@@ -39,8 +39,7 @@ export default (env: {production?: boolean; watch?: boolean}): webpack.Configura
   entry: {
     background: './src/modules/background/background.ts',
     trakt: './src/modules/content/trakt/trakt.ts',
-    popup: './src/modules/popup/popup.tsx', options: './src/modules/options/options.tsx',
-    history: './src/modules/history/history.tsx', 'auto-skip': './src/skip/content.ts',
+    app: './src/modules/app/index.tsx', 'auto-skip': './src/skip/content.ts',
     ...Object.fromEntries(services.map(id => [id, `./src/services/${id}/${id}.ts`])),
   },
   output: { filename: '[name].js', path: path.resolve('build/chrome'), clean: true },
@@ -57,8 +56,8 @@ export default (env: {production?: boolean; watch?: boolean}): webpack.Configura
   ] },
   plugins: [
     new webpack.DefinePlugin(Object.fromEntries(['TRAKT_CLIENT_ID', 'TRAKT_CLIENT_SECRET', 'ROLLBAR_TOKEN', 'TMDB_API_KEY', 'REACT_ENV'].map(key => [`process.env.${key}`, JSON.stringify(process.env[key] || '')]))),
-    ...['popup', 'options', 'history'].map(page => new HtmlWebpackPlugin({
-      templateContent: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BetterWatch · ${page}</title></head><body><div id="root"></div><script src="${page}.js"></script></body></html>`,
+    ...['app'].map(page => new HtmlWebpackPlugin({
+      templateContent: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><link rel="icon" href="images/betterwatch-48.png"><title>BetterWatch</title></head><body><div id="root"></div><script src="${page}.js"></script></body></html>`,
       filename: `${page}.html`, inject: false,
     })),
     { apply(compiler) { compiler.hooks.afterEmit.tapPromise('ChromePackage', async () => {

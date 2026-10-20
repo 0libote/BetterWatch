@@ -30,7 +30,7 @@ class _ScriptInjector {
 	private onStorageOptionsChange = (data: StorageOptionsChangeData) => {
 		if (data.options?.services) {
 			const doCheck = Object.values(data.options.services).some(
-				(serviceValue) => serviceValue && 'scrobble' in serviceValue
+				(serviceValue) => serviceValue && ('scrobble' in serviceValue || 'sync' in serviceValue)
 			);
 			if (doCheck) {
 				this.updateContentScripts();

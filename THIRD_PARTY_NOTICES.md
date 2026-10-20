@@ -28,3 +28,13 @@ BetterWatch modifications: restrict the service catalog and builds to Chrome,
 add independent skip preferences and controls, add local Trakt app setup,
 change the popup and theme, and disable optional telemetry/community services
 by default. No endorsement by the upstream projects is implied.
+
+## Manrope
+
+The Manrope typeface is bundled locally through `@fontsource-variable/manrope`.
+It is distributed under the SIL Open Font License 1.1; the license is retained
+in `licenses/MANROPE-OFL.txt`. No third-party font requests are made at runtime.
+
+The full-page BetterWatch interface replaces the upstream popup/options/history
+interfaces. Underlying tracking, metadata, corrections, and history APIs remain
+derived from Universal Trakt Scrobbler.

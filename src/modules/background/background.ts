@@ -1,3 +1,5 @@
+import { openApp } from '@common/OpenApp';
+import browser from 'webextension-polyfill';
 import { TraktAuth } from '@apis/TraktAuth';
 import { AutoSync } from '@common/AutoSync';
 import { BrowserAction } from '@common/BrowserAction';
@@ -14,6 +16,11 @@ import { Shared } from '@common/Shared';
 import { Tabs } from '@common/Tabs';
 
 Shared.pageType = 'background';
+
+// Register synchronously so toolbar clicks wake a suspended service worker.
+browser.action.onClicked.addListener(() => {
+	void openApp().catch(error => console.error('Could not open BetterWatch.', error));
+});
 
 Cache.addBackgroundListeners();
 AutoSync.addBackgroundListeners();

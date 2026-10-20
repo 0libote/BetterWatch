@@ -23,6 +23,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 	}
 
 	render(): ReactNode {
-		return this.state.hasError ? <div>Something went wrong.</div> : this.props.children;
+		return this.state.hasError ? <div className="startup" role="alert"><h1>Something interrupted BetterWatch.</h1><p>Your saved preferences are still in this browser. Reload the workspace to try again.</p><button className="button primary" onClick={() => window.location.reload()}>Reload workspace</button></div> : this.props.children;
 	}
 }

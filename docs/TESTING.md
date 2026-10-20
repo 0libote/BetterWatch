@@ -26,10 +26,20 @@ Covered behaviors:
 must also confirm all manifest-referenced resources exist, only the three
 service bundles are present, and the ZIP contains attribution/license files.
 
-`npm run preview` serves the compiled popup, settings, and history pages with
-mock Chrome APIs. Browser inspection checks popup width, preference changes,
-service switching, setup form validation, and both color schemes. This does
+`npm run preview` serves the compiled single `app.html` workspace with
+mock Chrome APIs. Browser inspection checks desktop and narrow layouts, preference changes,
+service switching, guided setup, form validation, and appearance changes. This does
 not validate Chrome extension loading or real Trakt/streaming requests.
+
+## Full-page regression checks
+
+The build validator asserts that `app.html` is the only packaged HTML page
+and that the toolbar action has no `default_popup`. Toolbar tests cover
+creating a workspace tab, focusing an existing tab/window, deduplicating
+concurrent clicks, and replacing a closed tab. History selection tests prevent
+imports of already synced items, incomplete lookups, missing dates, and watches
+below the threshold. Chrome service preferences must not revoke the host
+permissions needed by independent auto-skip.
 
 ## Required live checks before calling this production-ready
 
@@ -41,7 +51,7 @@ These require an authenticated Chrome profile and streaming subscriptions.
    skip once. Disable each preference while watching and confirm it stops.
 3. Enable credits and keep-watching separately and verify their actual
    service buttons. Navigate to another episode without refreshing.
-4. Configure a new Trakt application with the displayed redirect URI and
+4. Use the workspace’s **Trakt connection** flow with the displayed redirect URI and
    `/scrobble` permission. Confirm connect, cancel/retry, and disconnect.
 5. Confirm the show/season/episode (and a movie) resolve correctly. Pause,
    resume, seek, reach completion, close the tab, and check Trakt watching and
@@ -57,5 +67,17 @@ These require an authenticated Chrome profile and streaming subscriptions.
 10. Simulate token expiration, revoked authorization, temporary network
     failure, and rate limiting. Verify refresh/retry and useful errors.
 
-The initial build has not completed these authenticated checks. Upstream
+The authenticated checks remain required after the full-page redesign. Upstream
 support listings are the scope decision, not evidence of live verification.
+
+## Redesign browser checks
+
+The UI harness was exercised at desktop, tablet, and 390px widths. Verified
+service-specific persistence, disabled controls, route changes, empty setup
+validation, keyboard focus, appearance changes, and history search/selection.
+History fixtures were injected only into the mock browser storage for these
+checks and removed afterward; they are not in the application or release.
+
+An axe-core WCAG A/AA audit is also run against the rendered workspace. This
+complements keyboard and layout inspection; it does not replace authenticated
+Chrome extension or streaming tests.

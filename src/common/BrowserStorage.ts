@@ -869,7 +869,7 @@ class _BrowserStorage {
 			theme: {
 				type: 'select',
 				id: 'theme',
-				value: 'system',
+				value: 'dark',
 				choices: {
 					light: I18N.translate('lightTheme'),
 					dark: I18N.translate('darkTheme'),
@@ -953,7 +953,9 @@ class _BrowserStorage {
 			}
 		}
 
-		if (partialOptions.services) {
+		// Chrome grants the three streaming hosts at install time. Toggling Trakt
+		// must not try to revoke those hosts: auto-skip still needs them.
+		if (partialOptions.services && Shared.browser === 'firefox') {
 			const originsToAdd = [];
 			const originsToRemove = [];
 

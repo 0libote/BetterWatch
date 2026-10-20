@@ -243,7 +243,7 @@ class _EventDispatcher {
 			};
 			switch (Shared.pageType) {
 				case 'background':
-				case 'popup':
+				case 'extension':
 					void Messaging.toAllContent(message);
 				// falls through
 				case 'content':

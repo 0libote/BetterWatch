@@ -33,7 +33,7 @@ export type BrowserPrefix = 'moz' | 'chrome' | 'unknown';
 
 export type BrowserName = 'firefox' | 'chrome' | 'unknown';
 
-export type PageType = 'content' | 'popup' | 'background';
+export type PageType = 'content' | 'extension' | 'background';
 
 const browsers: Record<BrowserPrefix, BrowserName> = {
 	moz: 'firefox',

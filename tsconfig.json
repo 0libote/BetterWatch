@@ -1,47 +1,65 @@
 {
-	"exclude": ["./node_modules", "./build"],
-	"compilerOptions": {
-		"allowJs": true,
-		"checkJs": true,
-		"jsx": "react-jsx",
-		"module": "CommonJS",
-		"outDir": "./build",
-		"sourceMap": true,
-		"target": "ES2020",
-		"strict": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"baseUrl": "./",
-		"paths": {
-			"@locales/*": ["./src/_locales/*"],
-			"@apis/*": ["./src/apis/*"],
-			"@common/*": ["./src/common/*"],
-			"@components/*": [
-				"./src/components/*",
-				"./src/modules/history/components/*",
-				"./src/modules/options/components/*",
-				"./src/modules/popup/components/*"
-			],
-			"@contexts/*": ["./src/contexts/*"],
-			"@fonts": ["./src/fonts/fonts"],
-			"@images/*": ["./src/images/*"],
-			"@models/*": ["./src/models/*"],
-			"@pages/*": ["./src/pages/*", "./src/modules/history/pages/*", "./src/modules/popup/pages/*"],
-			"@templates/*": ["./src/templates/*"],
-			"@stores/*": ["./src/stores/*"],
-			"@background": ["./src/modules/background/background"],
-			"@service": ["./src/modules/content/service/service"],
-			"@trakt": ["./src/modules/content/trakt/trakt"],
-			"@history": ["./src/modules/history/history"],
-			"@history/*": ["./src/modules/history/*"],
-			"@options": ["./src/modules/options/options"],
-			"@options/*": ["./src/modules/options/*"],
-			"@popup": ["./src/modules/popup/popup"],
-			"@popup/*": ["./src/modules/popup/*"],
-			"@services": ["./src/services/services"],
-			"@services-apis": ["./src/services/apis"],
-			"@/*": ["./src/services/*", "./src/*"]
-		},
-		"esModuleInterop": true
-	}
+  "exclude": [
+    "./node_modules",
+    "./build"
+  ],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "react-jsx",
+    "module": "CommonJS",
+    "outDir": "./build",
+    "sourceMap": true,
+    "target": "ES2020",
+    "strict": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "baseUrl": "./",
+    "paths": {
+      "@locales/*": [
+        "./src/_locales/*"
+      ],
+      "@apis/*": [
+        "./src/apis/*"
+      ],
+      "@common/*": [
+        "./src/common/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@contexts/*": [
+        "./src/contexts/*"
+      ],
+      "@images/*": [
+        "./src/images/*"
+      ],
+      "@models/*": [
+        "./src/models/*"
+      ],
+      "@stores/*": [
+        "./src/stores/*"
+      ],
+      "@background": [
+        "./src/modules/background/background"
+      ],
+      "@service": [
+        "./src/modules/content/service/service"
+      ],
+      "@trakt": [
+        "./src/modules/content/trakt/trakt"
+      ],
+      "@services": [
+        "./src/services/services"
+      ],
+      "@services-apis": [
+        "./src/services/apis"
+      ],
+      "@/*": [
+        "./src/services/*",
+        "./src/*"
+      ]
+    },
+    "esModuleInterop": true
+  }
 }
