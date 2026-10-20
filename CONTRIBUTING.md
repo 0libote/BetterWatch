@@ -26,6 +26,10 @@ Keep the pinned Bun version and `@types/bun` aligned. Match the surrounding
 code style; avoid unrelated formatting changes. Local `.env` variants are
 ignored, and only `.env.example` belongs in the repository.
 
+Repository checks reject incompatible peer versions between direct packages.
+Keep the MUI package family compatible when updating it; Dependabot groups
+MUI updates so related major upgrades can be reviewed together.
+
 ## Changes and reviews
 
 Open an issue for larger changes so scope can be discussed. Keep pull requests
@@ -34,7 +38,8 @@ Add meaningful regression coverage for behavior changes and an Unreleased
 entry in [CHANGELOG.md](CHANGELOG.md) for user-visible changes.
 
 Run the commands above before submitting. CI repeats them on Linux, macOS,
-and Windows and checks workflow syntax. Its Linux job uploads the ZIP,
+and Windows. Linux must pass before the macOS/Windows jobs start; workflow
+syntax is checked when workflow/action files change. Its Linux job uploads the ZIP,
 checksum, and a preview release description for 14 days.
 
 For player or Trakt changes, record which authenticated checks from

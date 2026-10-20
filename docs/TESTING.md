@@ -4,7 +4,8 @@
 
 `bun run check` validates repository configuration, runs TypeScript under Bun,
 and uses the native Bun test runner. Configuration checks cover the pinned Bun
-runtime/types, Chrome version format, YAML syntax, a single Bun lockfile, and
+runtime/types, direct dependency peer compatibility, Chrome version format,
+YAML syntax, a single Bun lockfile, and
 accidentally tracked local environment files.
 Tests use `bun:test`; `bun run test` enables `--isolate` so each file has its
 own globals and module cache, including its mock Chrome APIs. DOM tests exercise real skip
@@ -45,8 +46,10 @@ server on an ephemeral local port, checks the workspace/assets/MIME types,
 confirms the Chrome shim exists only in served HTML, and exercises missing,
 malformed, and traversal paths before stopping the server.
 
-CI repeats these checks on Linux, macOS, and Windows. The workflow-lint job
-uses actionlint, and release-note tests cover version-tag mismatches, Chrome
+CI runs the full suite on Linux first, then repeats checks/build/package/HTTP
+verification on macOS and Windows after Linux passes. The Linux job alone
+generates the release-description preview and uploads artifacts. A separate
+workflow uses actionlint when workflow/action files change, and release-note tests cover version-tag mismatches, Chrome
 version limits, changelog extraction, and initial/subsequent release details.
 
 `bun run preview` uses `Bun.serve` to serve the compiled single `app.html` workspace with
