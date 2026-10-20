@@ -1,0 +1,71 @@
+import { TraktAuth } from '@apis/TraktAuth';
+import { AutoSync } from '@common/AutoSync';
+import { BrowserAction } from '@common/BrowserAction';
+import { BrowserStorage } from '@common/BrowserStorage';
+import { Cache } from '@common/Cache';
+import { Errors } from '@common/Errors';
+import { EventDispatcher } from '@common/Events';
+import { Messaging } from '@common/Messaging';
+import { Notifications } from '@common/Notifications';
+import { Requests } from '@common/Requests';
+import { RequestsManager } from '@common/RequestsManager';
+import { ScriptInjector } from '@common/ScriptInjector';
+import { Shared } from '@common/Shared';
+import { Tabs } from '@common/Tabs';
+
+Shared.pageType = 'background';
+
+Cache.addBackgroundListeners();
+AutoSync.addBackgroundListeners();
+Messaging.addListeners();
+
+const init = async () => {
+	await BrowserStorage.init();
+	BrowserAction.init();
+	Errors.init();
+	EventDispatcher.init();
+	Notifications.init();
+	RequestsManager.init();
+	ScriptInjector.init();
+	await Cache.initFromBackground();
+	await AutoSync.initFromBackground();
+	Messaging.init();
+	Shared.finishInit();
+};
+
+Messaging.addHandlers({
+	'connect-content-script': (message, tabId) => Messaging.connectContentScript(message, tabId),
+
+	'open-tab': (message) => Tabs.open(message.url, message.extraProperties),
+
+	'get-tab-id': (message, tabId) => tabId,
+
+	'validate-trakt-token': () => TraktAuth.validateToken(),
+
+	'finish-login': (message) => TraktAuth.finishManualAuth(message.redirectUrl),
+
+	login: () => TraktAuth.authorize(),
+
+	logout: () => TraktAuth.revokeToken(),
+
+	'send-request': (message, tabId) => Requests.send(message.request, tabId),
+
+	'set-title': (message) => BrowserAction.setTitle(message.title),
+
+	'set-active-icon': () => BrowserAction.setActiveIcon(),
+
+	'set-inactive-icon': () => BrowserAction.setInactiveIcon(),
+
+	'set-rotating-icon': () => BrowserAction.setRotatingIcon(),
+
+	'set-static-icon': () => BrowserAction.setStaticIcon(),
+
+	'show-notification': (message) => Notifications.show(message.title, message.message),
+
+	'send-to-all-content': (message) => Messaging.toAllContent(message.message),
+
+	'inject-function-from-background': ({ serviceId, key, url, params, tabId }) =>
+		ScriptInjector.injectInTab(serviceId, key, url, params, tabId),
+});
+
+void init();

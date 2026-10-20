@@ -1,0 +1,117 @@
+# BetterWatch
+
+A Chrome Manifest V3 extension combining auto-skip with Trakt tracking.
+Netflix is the primary target. Prime Video and HBO Max are included because
+both upstream projects list them with skip support and Trakt scrobbling plus
+history sync.
+
+This is an initial development build. The build, automated fixtures, and UI
+harness are verified; authenticated streaming and real Trakt writes still
+need the manual checks in [docs/TESTING.md](docs/TESTING.md).
+
+## Install in Chrome
+
+Requires Node.js 20+ and Chrome 120+.
+
+```sh
+npm ci
+npm run build
+```
+
+1. Open `chrome://extensions` and enable **Developer mode**.
+2. Choose **Load unpacked** and select this repository's `build/chrome` folder.
+3. Pin BetterWatch, then reload any streaming tabs that were already open.
+
+The same build creates `dist/betterwatch-chrome.zip`. Unzip it before loading
+it as an unpacked extension. No Firefox build or hosted backend is included.
+
+## Connect Trakt
+
+Auto-skip works without a Trakt account or application configuration.
+
+1. Open BetterWatch **Settings**. Copy the redirect URI shown there.
+2. Create an application at https://trakt.tv/oauth/applications/new with that
+   exact redirect URI and the `/scrobble` permission enabled.
+3. Enter the application's client ID and client secret into BetterWatch
+   settings and choose **Save Trakt setup**.
+4. Reopen the popup, choose **Connect Trakt**, and authorize your application.
+5. Start a movie or episode. The popup shows the title matched on Trakt; use
+   the correction control if it identifies the wrong title.
+
+The redirect URI depends on Chrome's extension ID. Keeping the unpacked
+folder in the same location keeps that ID stable; if it changes, update your
+Trakt application's redirect URI. App credentials and access/refresh tokens
+stay in this profile's local extension storage, outside Chrome Sync. The
+client secret in a browser extension is not a confidential server secret.
+Changing app credentials disconnects the current session. Disconnect in the
+popup revokes the token through Trakt.
+
+For a developer-managed build, `.env.example` lists optional build-time
+credentials. Local values entered in settings override those build defaults.
+Do not distribute a personal credential-bearing build or commit `.env`.
+
+## Included behavior
+
+- Per-service switches for intros, recaps, and advancing to the next episode
+  during credits. Intro and recap skipping default on; credits default off.
+- Netflix's continue-watching prompt can be dismissed automatically when
+  explicitly enabled.
+- Skipping uses visible service-provided controls, independently of Trakt.
+  A disabled service or action takes effect in open tabs.
+- Trakt start, pause/resume, stop, progress, title matching, and corrections
+  retain Universal Trakt Scrobbler's implementation.
+- **Review watch history** retains history loading, match correction, and
+  syncing selected watched items to Trakt. Scheduled history sync is opt-in
+  in settings; it is off by default.
+
+Trakt scrobbling and history access default enabled for the three services.
+History is not imported automatically unless scheduled sync is enabled or
+you select items and sync them in the history screen.
+
+## Scope and limits
+
+- Netflix, Prime Video, and HBO Max are the entire service catalog.
+- Prime Video scrobbling inherits the upstream English-language limitation.
+  Supported Prime hosts are primevideo.com and Amazon's US, UK, Germany,
+  Japan, and Australia domains.
+- Shared intro/recap controls on Prime and HBO are classified from known
+  button labels. Unknown labels are left untouched to respect the separate
+  preferences. Netflix uses language-independent `data-uia` selectors.
+- Skip-button availability and metadata depend on the streaming service's
+  current UI, subscription, title, and region. This build does not claim
+  that all authenticated service flows have been validated.
+- Ad blocking, forced seeking through ads, playback speed, ratings overlays,
+  profile selection, and cosmetic page modifications are outside this first
+  version. There is no Firefox, mobile, Disney+, or Crunchyroll build.
+- Optional community match suggestions, TMDB images, error reporting, and
+  notifications default off. The inherited settings can opt into them;
+  TMDB images and Rollbar need their optional build-time keys.
+
+## Develop and verify
+
+```sh
+npm run check      # TypeScript and behavior tests
+npm run build      # Production extension and ZIP
+npm run dev        # Watch and rebuild an unpacked Chrome extension
+npm run preview    # Local UI harness at http://localhost:4173
+```
+
+Reload the extension in `chrome://extensions` after a rebuild and refresh
+streaming tabs. The UI harness serves compiled extension pages using mock
+Chrome APIs. It verifies layout and interactions; it cannot authorize Trakt,
+scrobble, or exercise a real streaming player. Harness code is not packaged.
+
+Implementation notes and live verification steps are in
+[docs/TESTING.md](docs/TESTING.md) and [docs/DESIGN.md](docs/DESIGN.md).
+
+## Upstream projects and licensing
+
+- [Universal Trakt Scrobbler](https://github.com/trakt-tools/universal-trakt-scrobbler)
+  supplies the Trakt, metadata, history, and underlying extension code (MIT).
+- [Streaming enhanced / Netflix-Prime-Auto-Skip](https://github.com/Dreamlinerm/Netflix-Prime-Auto-Skip)
+  supplies the service skip selectors and behavior adapted here (GPL-3.0).
+
+BetterWatch's combined work is GPL-3.0-or-later. Original MIT notices remain
+in place. Exact source snapshots and changes are recorded in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); both original license texts
+are in `licenses/` and included in the extension package.
