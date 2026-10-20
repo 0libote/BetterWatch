@@ -7,6 +7,9 @@ section before creating the matching release tag.
 
 ### Maintenance
 
+- Gate macOS/Windows CI on the Linux suite, run workflow lint only for relevant
+  changes, group MUI dependency updates, and reject incompatible direct peers.
+
 - Add CI for Linux, macOS, and Windows with frozen Bun installs, repository
   checks, type checks, behavior tests, production builds, ZIP verification,
   preview HTTP checks, and downloadable build artifacts.
