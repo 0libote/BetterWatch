@@ -15,6 +15,7 @@
     "package:check": "bun scripts/verify-package.ts",
     "smoke:preview": "bun scripts/smoke-preview.ts",
     "release:check": "bun scripts/release-notes.ts --check",
+    "release:sync": "bun scripts/sync-release-version.ts",
     "release:notes": "bun scripts/release-notes.ts"
   },
   "dependencies": {
@@ -24,7 +25,7 @@
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
     "@mui/system": "^7.1.0",
-    "@mui/x-date-pickers": "^8.5.0",
+    "@mui/x-date-pickers": "^9.15.0",
     "date-fns": "^4.1.0",
     "deepmerge": "^4.3.1",
     "react": "^19.1.0",

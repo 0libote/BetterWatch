@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { checkChromeVersion } from './release-notes';
+import { checkDirectPeers } from './check-peers';
 
 const root = path.resolve(import.meta.dir, '..');
 const pkg = await Bun.file(path.join(root, 'package.json')).json();
+await checkDirectPeers(root);
 assert.match(
   pkg.packageManager,
   /^bun@\d+\.\d+\.\d+$/,

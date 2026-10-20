@@ -22,7 +22,12 @@ Version tags may have a `v` prefix. Their numeric version must exactly match
 `package.json`; Chrome's version must have one to four numeric components,
 each 0–65535, without leading zeros, and cannot be all zero. Arbitrary named
 tags still build and publish using the actual package version shown in notes.
-The workflow rejects mismatched numeric tags before publishing anything.
+If a numeric tag disagrees with `package.json`, the workflow syncs the version
+(and adds a dated `CHANGELOG.md` section when one is missing) to the tag
+before building, so the published ZIP always reports the tagged version.
+After a successful publish it pushes that sync as a `chore(release)` commit to
+the default branch. The push never downgrades a branch that is already newer
+than the tag, and named tags leave the package version untouched.
 
 The original 0.1.1 tag contains a ZIP whose internal extension version is
 0.1.0. Its description documents this historical discrepancy; the original
