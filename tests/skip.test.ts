@@ -1,4 +1,4 @@
-import { afterEach, test } from 'node:test';
+import { afterEach, test } from 'bun:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { SkipEngine } from '../src/skip/engine';

@@ -2,7 +2,9 @@
 
 ## Automated
 
-`npm run check` runs TypeScript and Node tests. DOM tests exercise real skip
+`bun run check` runs TypeScript under Bun and the native Bun test runner.
+Tests use `bun:test`; `bun run test` enables `--isolate` so each file has its
+own globals and module cache, including its mock Chrome APIs. DOM tests exercise real skip
 engine code against representative upstream player selectors in jsdom.
 The Trakt tests use a mock extension environment and no network requests.
 
@@ -21,12 +23,18 @@ Covered behaviors:
   cancel/retry, and token preservation/removal on temporary/auth failures.
 - Local-only token persistence, protection against sync overwrite, complete
   removal of a single synced storage key.
+- Service registration in Bun's development and minified production bundles,
+  plus Netflix session/playback functions serialized into a fresh page context
+  without access to the bundle's variables or compiler helpers.
 
-`npm run build` emits Chrome Manifest V3 output plus a ZIP. Build validation
+`bun run build` uses Bun's browser bundler to emit Chrome Manifest V3 output,
+a ZIP, and its SHA-256 checksum. All script entry points use IIFE format so
+Chrome can load them as classic content scripts and a classic service worker.
+CSS is extracted into `app.css`, linked by the only HTML page. Build validation
 must also confirm all manifest-referenced resources exist, only the three
 service bundles are present, and the ZIP contains attribution/license files.
 
-`npm run preview` serves the compiled single `app.html` workspace with
+`bun run preview` uses `Bun.serve` to serve the compiled single `app.html` workspace with
 mock Chrome APIs. Browser inspection checks desktop and narrow layouts, preference changes,
 service switching, guided setup, form validation, and appearance changes. This does
 not validate Chrome extension loading or real Trakt/streaming requests.

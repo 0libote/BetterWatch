@@ -143,7 +143,7 @@ class _ScriptInjector {
 	/**
 	 * The function that will be injected must be added to the `{serviceId}-{key}` key in `Shared.functionsToInject` e.g. `netflix-session`. It should not contain any references to outside variables/functions, because they will not be available in the injected script.
 	 *
-	 * It should also not contain any syntax that gets transpiled by Babel, because Babel's helpers will not be available either. A good way to test it is to go to https://babeljs.io/repl#?browsers=&presets=typescript,env&externalPlugins=@babel/plugin-transform-runtime@7.15.0, paste the function and see if it adds Babel helpers at the top. If it does, try using older syntax that doesn't require polyfill.
+	 * Keep injected functions self-contained after bundling too: Chrome serializes the function without its module scope, so references to compiler helpers or imported values will not be available. Inspect the bundled function when changing its syntax.
 	 *
 	 * @param serviceId
 	 * @param key This should be unique for `serviceId`.

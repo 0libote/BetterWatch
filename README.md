@@ -11,11 +11,13 @@ need the manual checks in [docs/TESTING.md](docs/TESTING.md).
 
 ## Install in Chrome
 
-Requires Node.js 20+ and Chrome 120+.
+Requires [Bun](https://bun.com/docs/installation) 1.4.3+ and Chrome 120+.
+The development and release toolchain uses Bun; a separate Node.js install
+is not required. CI uses the Bun version pinned in `package.json`.
 
 ```sh
-npm ci
-npm run build
+bun install --frozen-lockfile
+bun run build
 ```
 
 1. Open `chrome://extensions` and enable **Developer mode**.
@@ -24,7 +26,7 @@ npm run build
 4. Click the toolbar icon to open the full-page workspace. Clicking again
    focuses the existing workspace tab.
 
-The same build creates `dist/betterwatch-chrome.zip`. Unzip it before loading
+The same build creates `dist/betterwatch-chrome.zip` and `dist/SHA256SUMS`. Unzip it before loading
 it as an unpacked extension. No Firefox build or hosted backend is included.
 
 ## Release a version
@@ -40,7 +42,7 @@ The extension version comes from `package.json`. To bump it, create a matching
 tag, and publish both the version commit and tag:
 
 ```sh
-npm version patch
+bun pm version patch
 git push origin main --follow-tags
 ```
 
@@ -133,11 +135,21 @@ you select items and sync them in the history screen.
 ## Develop and verify
 
 ```sh
-npm run check      # TypeScript and behavior tests
-npm run build      # Production extension and ZIP
-npm run dev        # Watch and rebuild an unpacked Chrome extension
-npm run preview    # Local UI harness at http://localhost:4173
+bun run check      # TypeScript and isolated Bun behavior tests
+bun run build      # Production extension, ZIP, and SHA-256 checksum
+bun run dev        # Watch and rebuild an unpacked Chrome extension
+bun run preview    # Bun UI harness at http://localhost:4173
 ```
+
+`bun.lock` is the dependency lockfile. Use `bun add`, `bun remove`, and
+`bun update` to manage dependencies. `bun run test` runs Bun's test runner
+with file isolation so Chrome API mocks stay independent. Type checking runs
+TypeScript under Bun. Bun's bundler compiles the extension and extracts its
+styles and local fonts; the preview server uses `Bun.serve`.
+
+Watch mode rebuilds changes to `src/`, `assets/`, and `licenses/`; restart it
+after changing build scripts, dependency/configuration files, or `.env`.
+It leaves the production ZIP untouched. Set `PORT` to change the preview port.
 
 Reload the extension in `chrome://extensions` after a rebuild and refresh
 streaming tabs. The UI harness serves the compiled workspace using mock

@@ -1,9 +1,9 @@
 // Development UI harness only. No Chrome API shim is included in the extension.
-const http = require('node:http');
-const fs = require('node:fs');
-const path = require('node:path');
-const root = path.resolve(__dirname,'../build/chrome');
-const messages = fs.readFileSync(path.join(root,'_locales/en/messages.json'),'utf8');
+import path from 'node:path';
+const root = path.resolve(import.meta.dir, '../build/chrome');
+const messages = await Bun.file(
+  path.join(root, '_locales/en/messages.json'),
+).text();
 const shim = `<script>
 (()=>{
  const messages=${messages};
@@ -14,14 +14,34 @@ const shim = `<script>
  const api={runtime:{id:'preview',getURL:p=>p==='/'?'chrome-extension://preview/':new URL(p,location.href).href,getManifest:()=>({manifest_version:3,version:'0.1.0'}),onMessage:event(),sendMessage:async(message)=>{if(message.action==='get-tab-id')return 1;if(message.action==='validate-trakt-token')return store.auth||null;if(message.action==='login')throw new Error('Trakt sign-in requires the installed Chrome extension.');if(message.action==='send-request')throw new Error('Live requests require the installed Chrome extension.');return null;},openOptionsPage:async()=>{location.href='/app.html#/settings'}},identity:{getRedirectURL:()=> 'https://your-extension-id.chromiumapp.org/'},storage:{local,sync:{get:async()=>({}),set:async()=>{},remove:async()=>{},clear:async()=>{},QUOTA_BYTES_PER_ITEM:8192},session:local,onChanged:changed},tabs:{query:async()=>[],create:async({url})=>{location.href=url},onUpdated:event(),onRemoved:event()},permissions:{contains:async()=>true,request:async()=>true,remove:async()=>true},i18n:{getMessage:(name,subs)=>{const entry=messages[name];let text=entry?.message||name;for(const [key,value] of Object.entries(entry?.placeholders||{})){text=text.split('$'+key.toUpperCase()+'$').join(value.content).split('$'+key.toLowerCase()+'$').join(value.content)}for(const [i,value] of [subs].flat().entries())text=text.replaceAll('$'+(i+1),value||'');return text}}};
  window.chrome=api;window.browser=api;
 })();</script>`;
-http.createServer((req,res)=>{
- const name = new URL(req.url || '/','http://localhost').pathname === '/' ? '/app.html' : new URL(req.url || '/','http://localhost').pathname;
- const file = path.resolve(root,'.'+name);
- if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end()}
- try{
- let data = /** @type {Buffer | string} */ (fs.readFileSync(file));
- const ext=path.extname(file);res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.woff':'font/woff','.woff2':'font/woff2'})[ext]||'application/octet-stream');
- if(ext==='.html')data=data.toString().replace('<script src=',() => shim+'<script src=');
- res.end(data);
- }catch{res.writeHead(404);res.end('Build the extension with npm run build first.')}
-}).listen(4173,'0.0.0.0',()=>console.log('UI preview: http://localhost:4173 (mock Chrome APIs; no real Trakt or streaming connection)'));
+const server = Bun.serve({
+  hostname: '0.0.0.0',
+  port: Number(process.env.PORT || 4173),
+  async fetch(request) {
+    const pathname = new URL(request.url).pathname;
+    const filePath = path.resolve(
+      root,
+      '.' + (pathname === '/' ? '/app.html' : decodeURIComponent(pathname)),
+    );
+    if (!filePath.startsWith(root + path.sep))
+      return new Response('Forbidden', { status: 403 });
+    const file = Bun.file(filePath);
+    if (!(await file.exists()))
+      return new Response('Build the extension with bun run build first.', {
+        status: 404,
+      });
+    if (path.extname(filePath) === '.html') {
+      const html = (await file.text()).replace(
+        '<script src=',
+        () => shim + '<script src=',
+      );
+      return new Response(html, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+    return new Response(file);
+  },
+});
+console.log(
+  `UI preview: http://localhost:${server.port} (mock Chrome APIs; no real Trakt or streaming connection)`,
+);
