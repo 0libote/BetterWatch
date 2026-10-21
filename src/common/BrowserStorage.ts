@@ -3,6 +3,7 @@ import { TraktAuthDetails } from '@apis/TraktAuth';
 import { TraktSettings } from '@apis/TraktSettings';
 import { CacheStorageValues } from '@common/Cache';
 import { I18N } from '@common/I18N';
+import { readLocalStorage } from '@common/LocalStorage';
 import { Messaging } from '@common/Messaging';
 import { Session } from '@common/Session';
 import { Shared } from '@common/Shared';
@@ -661,7 +662,7 @@ class _BrowserStorage {
 	}
 
 	get(keys?: keyof StorageValues | (keyof StorageValues)[] | null): Promise<StorageValues> {
-		return browser.storage.local.get(keys);
+		return readLocalStorage(keys);
 	}
 
 	async remove(
@@ -716,7 +717,11 @@ class _BrowserStorage {
 	 * and therefore can be saved in the sync storage.
 	 */
 	private async splitChunks(values: Record<string, unknown>): Promise<StorageValues> {
-		const maxSize = browser.storage.sync.QUOTA_BYTES_PER_ITEM ?? 8192;
+		// Chrome exposes this constant; Firefox's cross-browser types omit it.
+		const syncArea = browser.storage.sync as typeof browser.storage.sync & {
+			QUOTA_BYTES_PER_ITEM?: number;
+		};
+		const maxSize = syncArea.QUOTA_BYTES_PER_ITEM ?? 8192;
 		const newValues: Record<string, unknown> = {};
 		const keysToRemove: string[] = [];
 

@@ -1,3 +1,4 @@
+import { readLocalStorage } from '@common/LocalStorage';
 import browser from "webextension-polyfill";
 import {
   createContext,
@@ -61,7 +62,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     const read = async () => {
-      const values = await browser.storage.local.get([
+      const values = await readLocalStorage([
         "skipSettings",
         "options",
         "syncOptions",
@@ -143,7 +144,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   ) =>
     run(async () => {
       const next = normalizeSettings(
-        (await browser.storage.local.get("skipSettings")).skipSettings,
+        (await readLocalStorage("skipSettings")).skipSettings,
       );
       next[service] = { ...next[service], [key]: value };
       await browser.storage.local.set({ skipSettings: next });
