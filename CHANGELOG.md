@@ -7,6 +7,9 @@ section before creating the matching release tag.
 
 ### Maintenance
 
+- Update the extension API wrapper/types, keep stored values typed at the API
+  boundary, and ignore malformed or unrelated messages without taking a response.
+
 - Gate macOS/Windows CI on the Linux suite, run workflow lint only for relevant
   changes, group MUI dependency updates, and reject incompatible direct peers.
 

@@ -4,6 +4,7 @@ Object.assign(globalThis, {
   chrome: { runtime: { id: "test" } },
   browser: {
     runtime: {
+      id: "test",
       getURL: () => "chrome-extension://test/",
       getManifest: () => ({ manifest_version: 3 }),
     },
