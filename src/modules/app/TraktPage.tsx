@@ -1,3 +1,4 @@
+import { readLocalStorage } from '@common/LocalStorage';
 import { useEffect, useState } from "react";
 import { Session } from "@common/Session";
 import { Shared } from "@common/Shared";
@@ -18,8 +19,7 @@ export function TraktPage() {
   const [editing, setEditing] = useState(!configured);
   const redirect = browser.identity.getRedirectURL();
   useEffect(() => {
-    void browser.storage.local
-      .get("traktApp")
+    void readLocalStorage("traktApp")
       .then(({ traktApp }) => {
         setClientId(traktApp?.clientId || process.env.TRAKT_CLIENT_ID || "");
         setClientSecret(

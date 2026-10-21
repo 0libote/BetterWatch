@@ -28,6 +28,7 @@ for (const minify of [false, true]) {
     const compiled = runInNewContext(`
       globalThis.chrome = { runtime: { id: 'test' } };
       globalThis.browser = { storage: { session: {} }, runtime: {
+        id: 'test',
         getURL: () => 'chrome-extension://test/',
         getManifest: () => ({ manifest_version: 3 })
       } };

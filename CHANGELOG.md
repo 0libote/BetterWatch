@@ -9,6 +9,8 @@ section before creating the matching release tag.
 
 - Upgrade Material UI, System, and icons together to v9; migrate list rows and
   native input properties while retaining virtual-list placement and input bounds.
+- Update the extension API wrapper/types, keep stored values typed at the API
+  boundary, and ignore malformed or unrelated messages without taking a response.
 
 - Gate macOS/Windows CI on the Linux suite, run workflow lint only for relevant
   changes, group MUI dependency updates, and reject incompatible direct peers.
