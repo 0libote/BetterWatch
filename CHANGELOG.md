@@ -7,6 +7,8 @@ section before creating the matching release tag.
 
 ### Maintenance
 
+- Upgrade Material UI, System, and icons together to v9; migrate list rows and
+  native input properties while retaining virtual-list placement and input bounds.
 - Update the extension API wrapper/types, keep stored values typed at the API
   boundary, and ignore malformed or unrelated messages without taking a response.
 

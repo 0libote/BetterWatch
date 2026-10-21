@@ -30,7 +30,7 @@ const BaseTextFieldOption = <T extends string | number>({
 	const onChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const targetValue = event.target.value;
 		let newValue;
-		if (typeof value === 'string') {
+		if (typeof initialValue === 'string') {
 			newValue = targetValue;
 			if (!newValue) {
 				setValue(null);
@@ -64,18 +64,12 @@ const BaseTextFieldOption = <T extends string | number>({
 			label={label}
 			margin="normal"
 			size="small"
-			type={typeof value}
+			type={typeof initialValue === 'number' ? 'number' : 'text'}
 			value={value !== null ? value : ''}
 			variant="outlined"
-			inputProps={
-				typeof value === 'number'
-					? {
-							max: maxValue,
-							min: minValue,
-							step,
-						}
-					: {}
-			}
+			slotProps={{
+				htmlInput: typeof initialValue === 'number' ? { max: maxValue, min: minValue, step } : {},
+			}}
 			onChange={onChange}
 			sx={sx}
 		/>
