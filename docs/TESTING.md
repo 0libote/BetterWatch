@@ -48,7 +48,11 @@ malformed, and traversal paths before stopping the server.
 
 CI runs the full suite on Linux first, then repeats checks/build/package/HTTP
 verification on macOS and Windows after Linux passes. The Linux job alone
-generates the release-description preview and uploads artifacts. A separate
+generates the release-description preview and uploads artifacts. Windows caches
+Bun's downloaded packages by OS, architecture, Bun version, and lockfile; it still
+runs a frozen install and every check. The portability install cache stays beside
+the workspace on the runner's temporary drive so Windows can hardlink packages
+instead of copying them across drives. A separate
 workflow uses actionlint when workflow/action files change, and release-note tests cover version-tag mismatches, Chrome
 version limits, changelog extraction, and initial/subsequent release details.
 
