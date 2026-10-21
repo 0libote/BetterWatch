@@ -19,7 +19,6 @@ import {
 	Link,
 	List,
 	ListItem,
-	ListItemSecondaryAction,
 	ListItemText,
 	TextField,
 	Typography,
@@ -54,7 +53,16 @@ const SuggestionListItem = ({
 }: SuggestionListItemData & { index: number; style: CSSProperties }): JSX.Element => {
 	const suggestion = suggestions[index];
 	return (
-		<ListItem key={index} ContainerComponent="div" ContainerProps={{ style }}>
+		<ListItem
+			key={index}
+			component="div"
+			style={style}
+			secondaryAction={
+				<Button variant="contained" onClick={() => onCorrectButtonClick(suggestion)}>
+					{I18N.translate('use')}
+				</Button>
+			}
+		>
 			<ListItemText
 				primary={
 					<Link href={CorrectionApi.getSuggestionUrl(suggestion)} target="_blank" rel="noopener">
@@ -63,27 +71,23 @@ const SuggestionListItem = ({
 				}
 				secondary={I18N.translate('suggestedBy', suggestion.count.toString())}
 			/>
-			<ListItemSecondaryAction>
-				<Button variant="contained" onClick={() => onCorrectButtonClick(suggestion)}>
-					{I18N.translate('use')}
-				</Button>
-			</ListItemSecondaryAction>
 		</ListItem>
 	);
 };
 
 const CorrectionItem = ({ correction, onClearButtonClick }: CorrectionItemProps): JSX.Element => {
 	return (
-		<ListItem>
+		<ListItem
+			secondaryAction={
+				<Button variant="contained" color="error" onClick={() => void onClearButtonClick()}>
+					{I18N.translate('clear')}
+				</Button>
+			}
+		>
 			<ListItemText
 				primary={<Typography>{correction.title}</Typography>}
 				secondary={I18N.translate('suggestedBy', correction.count.toString())}
 			/>
-			<ListItemSecondaryAction>
-				<Button variant="contained" color="error" onClick={() => void onClearButtonClick()}>
-					{I18N.translate('clear')}
-				</Button>
-			</ListItemSecondaryAction>
 		</ListItem>
 	);
 };

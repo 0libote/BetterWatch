@@ -7,6 +7,9 @@ section before creating the matching release tag.
 
 ### Maintenance
 
+- Upgrade Material UI, System, and icons together to v9; migrate list rows and
+  native input properties while retaining virtual-list placement and input bounds.
+
 - Gate macOS/Windows CI on the Linux suite, run workflow lint only for relevant
   changes, group MUI dependency updates, and reject incompatible direct peers.
 
