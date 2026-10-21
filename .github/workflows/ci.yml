@@ -80,6 +80,9 @@ jobs:
           bun-version-file: package.json
 
       - name: Install locked dependencies
+        env:
+          # Keep cache and node_modules on the same drive for Windows hardlinks.
+          BUN_INSTALL_CACHE_DIR: ${{ runner.temp }}/bun-install-cache
         run: bun install --frozen-lockfile
 
       - name: Check repository configuration, types, and tests

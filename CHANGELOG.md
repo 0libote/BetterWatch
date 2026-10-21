@@ -5,6 +5,11 @@ section before creating the matching release tag.
 
 ## [Unreleased]
 
+### Maintenance
+
+- Speed up Windows CI dependency installation by placing Bun's cache on the
+  workspace drive, while retaining all portability checks and frozen installs.
+
 ## [0.1.2] - 2026-10-21
 
 ### Maintenance
