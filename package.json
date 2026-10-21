@@ -1,6 +1,6 @@
 {
   "name": "betterwatch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Chrome auto-skip and Trakt for Netflix, Prime Video, and HBO Max.",
   "author": "BetterWatch contributors",
   "private": true,
