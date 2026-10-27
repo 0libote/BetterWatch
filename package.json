@@ -32,7 +32,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "react-window": "^2.4.1",
-    "rollbar": "^2.26.5",
+    "rollbar": "^4.1.0",
     "type-fest": "^3.13.1",
     "webextension-polyfill": "^0.12.0"
   },
