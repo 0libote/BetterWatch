@@ -11,10 +11,10 @@
     "outDir": "./build",
     "sourceMap": true,
     "target": "ES2020",
+    "types": ["bun"],
     "strict": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "baseUrl": "./",
     "paths": {
       "@locales/*": [
         "./src/_locales/*"
