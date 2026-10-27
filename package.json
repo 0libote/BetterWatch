@@ -33,7 +33,7 @@
     "react-router-dom": "^7.6.2",
     "react-window": "^2.5.0",
     "rollbar": "^4.1.0",
-    "type-fest": "^3.13.1",
+    "type-fest": "^5.10.0",
     "webextension-polyfill": "^0.12.0"
   },
   "devDependencies": {
