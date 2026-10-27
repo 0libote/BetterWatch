@@ -13,7 +13,7 @@ need the manual checks in [docs/TESTING.md](docs/TESTING.md).
 
 ## Install in Chrome
 
-Requires [Bun](https://bun.com/docs/installation) 1.4.3+ and Chrome 120+.
+Requires [Bun](https://bun.com/docs/installation) 1.4.4+ and Chrome 120+.
 The development and release toolchain uses Bun; a separate Node.js install
 is not required. CI uses the Bun version pinned in `package.json`.
 
