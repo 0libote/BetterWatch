@@ -1,7 +1,7 @@
 import { cp, mkdir, rm } from 'node:fs/promises';
 import { createWriteStream, watch } from 'node:fs';
 import path from 'node:path';
-import archiver from 'archiver';
+import { ZipArchive } from 'archiver';
 import { createManifest } from './manifest';
 import { validateBuild } from './validate-build';
 
@@ -93,7 +93,7 @@ async function build() {
       const output = createWriteStream(
         path.join(root, 'dist/betterwatch-chrome.zip'),
       );
-      const archive = archiver('zip', { zlib: { level: 9 } });
+      const archive = new ZipArchive({ zlib: { level: 9 } });
       output.on('close', resolve);
       output.on('error', reject);
       archive.on('error', reject);
