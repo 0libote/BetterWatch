@@ -207,7 +207,8 @@ function HelpPage() {
           Streaming interfaces can change. Check that the service is enabled and
           reload its player tab. Prime Video scrobbling currently needs an
           English interface. Live playback and imports also depend on the
-          service, account, and region.
+          service, account, and region. HBO tracking and history are experimental
+          and off by default on new installs; auto-skip works independently.
         </p>
         <h2>Open source, brought together</h2>
         <p>

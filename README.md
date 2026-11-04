@@ -7,9 +7,11 @@ Netflix is the primary target. Prime Video and HBO Max are included because
 both upstream projects list them with skip support and Trakt scrobbling plus
 history sync.
 
-This is an initial development build. The build, automated fixtures, and UI
-harness are verified; authenticated streaming and real Trakt writes still
-need the manual checks in [docs/TESTING.md](docs/TESTING.md).
+This is a development build for local use. Auto-skip works without a Trakt
+account. Netflix and English Prime Video tracking are available after local
+Trakt setup; HBO tracking/history are experimental and off by default on new
+installs. Real-account checks remain required before a production release;
+see [readiness](docs/READINESS.md) and [testing](docs/TESTING.md).
 
 ## Install in Chrome
 
@@ -119,13 +121,17 @@ Do not distribute a personal credential-bearing build or commit `.env`.
   syncing selected watched items to Trakt. Scheduled history sync is opt-in
   in Settings; it is off by default.
 
-Trakt scrobbling and history access default enabled for the three services.
+Trakt scrobbling and history access default enabled for Netflix and Prime Video.
+HBO tracking/history are experimental and default off on new installs; existing
+preferences are preserved. HBO auto-skip remains enabled independently.
 History is not imported automatically unless scheduled sync is enabled or
 you select items and sync them in the history screen.
 
 ## Scope and limits
 
-- Netflix, Prime Video, and HBO Max are the entire service catalog.
+- Netflix, Prime Video, and HBO Max (including max.com) are the service catalog.
+- HBO tracking/history use a legacy upstream integration that may fail with
+  current accounts. Enable them only for testing; auto-skip is independent.
 - Prime Video scrobbling inherits the upstream English-language limitation.
   Supported Prime hosts are primevideo.com and Amazon's US, UK, Germany,
   Japan, and Australia domains.

@@ -5,6 +5,23 @@ section before creating the matching release tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- Send streaming-session cookies from Chrome's background requests, while
+  keeping bearer-token API calls free of browser cookies.
+- Register tracking listeners before worker initialization, serialize tab
+  updates and session writes, retry failed injections, and clean up navigation.
+- Keep a disconnected tab from blocking messages to other players.
+- Restore Max domain coverage and localized Prime skip controls without
+  clicking unrelated introduction/recap bonus features.
+- Use current Trakt app links and resolve episode suggestion links through
+  their show; validate copied URLs before correcting a match.
+
+### Changed
+
+- Mark HBO tracking/history experimental and default them off for new installs.
+  Preserve existing preferences and keep auto-skip independent.
+
 ### Maintenance
 
 - Speed up Windows CI dependency installation by placing Bun's cache on the

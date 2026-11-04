@@ -4,8 +4,8 @@ import { Messaging } from '@common/Messaging';
 import { SessionStorage } from '@common/SessionStorage';
 import { Shared } from '@common/Shared';
 import { Tabs } from '@common/Tabs';
-import { getServices } from '@models/Service';
-import browser, { Manifest as WebExtManifest, Tabs as WebExtTabs } from 'webextension-polyfill';
+import { getServices, Service } from '@models/Service';
+import browser, { Tabs as WebExtTabs } from 'webextension-polyfill';
 
 export interface ScriptInjectorMessage {
 	serviceId: string;
@@ -15,13 +15,25 @@ export interface ScriptInjectorMessage {
 }
 
 class _ScriptInjector {
-	contentScripts: WebExtManifest.ContentScript[] | null = null;
+	contentScripts: Service[] | null = null;
 	injectedScriptIds = new Set<string>();
+	private tabUpdates = new Map<number, Promise<void>>();
+
+	// Register before async initialization so tab updates can wake the service worker.
+	addBackgroundListeners() {
+		if (Shared.browser === 'firefox') {
+			// Firefox can filter by URL, which avoids waking up the background for unrelated tabs.
+			browser.tabs.onUpdated.addListener(this.onTabUpdated, {
+				urls: getServices().flatMap((service) => service.hostPatterns),
+			});
+		} else {
+			browser.tabs.onUpdated.addListener(this.onTabUpdated);
+		}
+	}
 
 	init() {
 		if (Shared.pageType === 'background') {
 			this.updateContentScripts();
-			this.checkTabListener();
 			Shared.events.subscribe('STORAGE_OPTIONS_CHANGE', null, this.onStorageOptionsChange);
 			Shared.events.subscribe('CONTENT_SCRIPT_DISCONNECT', null, this.onContentScriptDisconnect);
 		}
@@ -34,20 +46,12 @@ class _ScriptInjector {
 			);
 			if (doCheck) {
 				this.updateContentScripts();
-				this.checkTabListener();
 			}
 		}
 	};
 
 	private onContentScriptDisconnect = async (data: ContentScriptConnectData) => {
-		const values = await SessionStorage.get('injectedContentScriptTabs');
-		const injectedContentScriptTabs = new Set(values.injectedContentScriptTabs ?? []);
-		if (injectedContentScriptTabs.has(data.tabId)) {
-			injectedContentScriptTabs.delete(data.tabId);
-			await SessionStorage.set({
-				injectedContentScriptTabs: Array.from(injectedContentScriptTabs),
-			});
-		}
+		await SessionStorage.updateInjectedTab(data.tabId, false);
 		const { scrobblingDetails } = await Shared.storage.get('scrobblingDetails');
 		if (scrobblingDetails && data.tabId === scrobblingDetails.tabId) {
 			await TraktScrobble.stop();
@@ -60,38 +64,42 @@ class _ScriptInjector {
 				(service) =>
 					(service.hasScrobbler && Shared.storage.options.services[service.id].scrobble) ||
 					(service.hasSync && Shared.storage.options.services[service.id].sync)
-			)
-			.map((service) => ({
-				matches: service.hostPatterns.map((hostPattern) =>
-					hostPattern
-						.replace(/^\*:\/\/\*\./, 'https?:\\/\\/([^/]*\\.)?')
-						.replace(/^\*:\/\//, 'https?:\\/\\/')
-						.replace(/\/\*$/, '')
-				),
-				js: [`${service.id}.js`],
-			}));
-	}
-
-	checkTabListener() {
-		const shouldInject = getServices().some(
-			(service) =>
-				(service.hasScrobbler && Shared.storage.options.services[service.id].scrobble) ||
-				(service.hasSync && Shared.storage.options.services[service.id].sync)
-		);
-		if (shouldInject && !browser.tabs.onUpdated.hasListener(this.onTabUpdated)) {
-			browser.tabs.onUpdated.addListener(this.onTabUpdated);
-		} else if (!shouldInject && browser.tabs.onUpdated.hasListener(this.onTabUpdated)) {
-			browser.tabs.onUpdated.removeListener(this.onTabUpdated);
-		}
+			);
 	}
 
 	onTabUpdated = (
-		_: unknown,
+		tabId: number,
 		changeInfo: WebExtTabs.OnUpdatedChangeInfoType,
 		tab: WebExtTabs.Tab
 	) => {
-		void this.injectContentScript(changeInfo, tab);
+		if (!tab.url || (changeInfo.status !== 'loading' &&
+			!getServices().some(service => service.matchesUrl(tab.url!)))) return Promise.resolve();
+		// Keep startup bursts and reload cleanup in order for each tab.
+		const previousUpdate = this.tabUpdates.get(tabId) ?? Promise.resolve();
+		const update = previousUpdate
+			.then(() => this.onTabUpdatedAfterInit(changeInfo, tab))
+			.catch((err) => {
+				if (Shared.errors.validate(err)) {
+					Shared.errors.log('Failed to inject content script.', err);
+				}
+			})
+			.finally(() => {
+				if (this.tabUpdates.get(tabId) === update) {
+					this.tabUpdates.delete(tabId);
+				}
+			});
+		this.tabUpdates.set(tabId, update);
+		return update;
 	};
+
+	private async onTabUpdatedAfterInit(
+		changeInfo: WebExtTabs.OnUpdatedChangeInfoType,
+		tab: WebExtTabs.Tab
+	) {
+		// When the update wakes up the background, the listener fires before the options are loaded.
+		await Shared.waitForInit();
+		await this.injectContentScript(changeInfo, tab);
+	}
 
 	async injectContentScript(
 		changeInfo: WebExtTabs.OnUpdatedChangeInfoType,
@@ -102,10 +110,9 @@ class _ScriptInjector {
 		if (
 			tab.id &&
 			injectedContentScriptTabs.has(tab.id) &&
-			changeInfo.status === 'loading' &&
-			typeof changeInfo.url === 'undefined'
+			changeInfo.status === 'loading'
 		) {
-			void Shared.events.dispatch('CONTENT_SCRIPT_DISCONNECT', null, { tabId: tab.id });
+			await Shared.events.dispatch('CONTENT_SCRIPT_DISCONNECT', null, { tabId: tab.id });
 			return;
 		}
 		if (
@@ -118,25 +125,21 @@ class _ScriptInjector {
 		) {
 			return;
 		}
-		for (const { matches, js } of this.contentScripts) {
-			if (!js) {
-				continue;
-			}
-			const isMatch = matches.find((match) => tab.url?.match(match));
-			if (isMatch) {
-				injectedContentScriptTabs.add(tab.id);
-				await SessionStorage.set({
-					injectedContentScriptTabs: Array.from(injectedContentScriptTabs),
-				});
-				for (const file of js) {
-					if (Shared.manifestVersion === 3) {
-						await browser.scripting.executeScript({ target: { tabId: tab.id }, files: [file] });
-					} else {
-						await browser.tabs.executeScript(tab.id, { file });
-					}
+		for (const service of this.contentScripts) {
+			if (!service.matchesUrl(tab.url)) continue;
+			await SessionStorage.updateInjectedTab(tab.id, true);
+			const file = `${service.id}.js`;
+			try {
+				if (Shared.manifestVersion === 3) {
+					await browser.scripting.executeScript({ target: { tabId: tab.id }, files: [file] });
+				} else {
+					await browser.tabs.executeScript(tab.id, { file });
 				}
-				break;
+			} catch (err) {
+				await SessionStorage.updateInjectedTab(tab.id, false);
+				throw err;
 			}
+			break;
 		}
 	}
 

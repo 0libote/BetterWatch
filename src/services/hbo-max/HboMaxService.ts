@@ -4,7 +4,7 @@ export const HboMaxService = new Service({
 	id: 'hbo-max',
 	name: 'HBO Max',
 	homePage: 'https://www.hbomax.com/',
-	hostPatterns: ['*://*.hbo.com/*', '*://*.hbomax.com/*'],
+	hostPatterns: ['*://*.hbo.com/*', '*://*.hbomax.com/*', '*://*.max.com/*'],
 	hasScrobbler: true,
 	hasSync: true,
 	hasAutoSync: true,

@@ -333,6 +333,8 @@ export function TraktPage() {
               description={
                 id === "amazon-prime"
                   ? "Prime Video title detection currently requires English."
+                  : id === "hbo-max"
+                    ? "Experimental: HBO tracking may fail with current accounts. Off by default on new installs."
                   : "Start, pause, and finish watching on Trakt automatically."
               }
               checked={options.services[id]?.scrobble || false}

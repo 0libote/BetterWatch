@@ -27,7 +27,7 @@ export function normalizeSettings(value: unknown): SkipSettings {
 export function serviceForHost(host: string): SkipService | null {
   if (/(^|\.)netflix\.com$/i.test(host)) return 'netflix';
   if (/(^|\.)(primevideo\.com|amazon\.(com|co\.jp|co\.uk|com\.au|de))$/i.test(host)) return 'amazon-prime';
-  if (/(^|\.)(hbomax|hbo)\.com$/i.test(host)) return 'hbo-max';
+  if (/(^|\.)(max|hbomax|hbo)\.com$/i.test(host)) return 'hbo-max';
   return null;
 }
 export interface SkipRule {action: SkipAction; selectors: string[]}
@@ -39,7 +39,8 @@ export const RULES: Record<SkipService, SkipRule[]> = {
     {action: 'continueWatching', selectors: ['[data-uia="interrupt-autoplay-continue"]']},
   ],
   'amazon-prime': [
-    {action: 'intro', selectors: ['[class*="skipelement"]']},
+    // Class-less controls are limited to known skip commands below.
+    {action: 'intro', selectors: ['[class*="skipelement"]', 'button']},
     {action: 'credits', selectors: ['[class*="nextupcard-button"]']},
   ],
   'hbo-max': [
@@ -48,12 +49,25 @@ export const RULES: Record<SkipService, SkipRule[]> = {
   ],
 };
 
+const PRIME_SKIP_LABELS = new Set([
+  'skip intro', 'skip recap', "passer l'intro", 'passer le récapitulatif',
+  'salta intro', 'salta riepilogo', 'omitir introducción', 'omitir resumen',
+  'avançar introdução', 'pular abertura', 'pular resumo', 'intro overslaan',
+  'vorspann überspringen', 'zusammenfassung überspringen', 'イントロをスキップ',
+  'pomiń wstęp', '소개 건너뛰기', 'jeneriği atla',
+]);
+
 // Shared intro/recap buttons must respect each individual preference.
 export function classifyAction(rule: SkipRule, element: Element): SkipAction | null {
   if (rule.action !== 'intro') return rule.action;
+  const label = (element.textContent?.trim() || element.getAttribute('aria-label') || '')
+    .replace(/\s+/g, ' ').trim().toLowerCase();
+  // Class-less Prime buttons must be known skip commands, not bonus titles such as “Introduction”.
+  if (rule.selectors.includes('button') && !element.matches('[class*="skipelement"]') &&
+    !PRIME_SKIP_LABELS.has(label)) return null;
   const text = `${element.textContent || ''} ${element.getAttribute('aria-label') || ''}`;
   if (/recap|récap|zusammenfassung|resumen|riepilogo|resumo|振り返り|요약/i.test(text)) return 'recap';
-  if (/intro|opening|vorspann|abertura|introducción|wstęp|イントロ|jenerik|소개/i.test(text)) return 'intro';
+  if (/intro|opening|vorspann|abertura|introducción|wstęp|イントロ|jeneri|소개/i.test(text)) return 'intro';
   // Netflix identifies the action independently of the user's language.
   if (element.getAttribute('data-uia') === 'player-skip-intro') return 'intro';
   // Shared buttons with an unknown label cannot safely choose a preference.

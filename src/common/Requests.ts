@@ -2,6 +2,7 @@ import { Messaging } from '@common/Messaging';
 import { RequestError } from '@common/RequestError';
 import { RequestsManager } from '@common/RequestsManager';
 import { Shared } from '@common/Shared';
+import { getServices } from '@models/Service';
 import browser from 'webextension-polyfill';
 
 export type RequestDetails = {
@@ -236,6 +237,9 @@ class _Requests {
 		request.signal = RequestsManager.abortControllers.get(cancelKey)?.signal;
 
 		return fetch(request.url, {
+			// Chrome uses the profile's cookies only for streaming services, not bearer-token APIs.
+			credentials: Shared.browser === 'chrome' && getServices().some(service => service.matchesUrl(request.url))
+				? 'include' : 'omit',
 			method: options.method,
 			headers: options.headers,
 			body: options.body,

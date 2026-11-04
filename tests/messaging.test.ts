@@ -47,3 +47,45 @@ test('asynchronous handler errors retain the serialized messaging error format',
     return true;
   });
 });
+
+test('a disconnected tab cannot block a broadcast to remaining players', async () => {
+  const {SessionStorage} = require('../src/common/SessionStorage') as typeof import('../src/common/SessionStorage');
+  const originalArea = SessionStorage.instance;
+  const originalSend = Messaging.toContent;
+  const originalPage = Shared.pageType;
+  const data = {injectedContentScriptTabs: [1,2]};
+  SessionStorage.instance = {
+    async get() {return {injectedContentScriptTabs: [...data.injectedContentScriptTabs]};},
+    async set(value: typeof data) {Object.assign(data, value);},
+  } as never;
+  const sent: number[] = [];
+  Shared.pageType = 'background';
+  Messaging.toContent = async (_message, tabId) => {
+    sent.push(tabId);
+    if (tabId === 1) throw new Error('Receiving end does not exist');
+    return null as never;
+  };
+  try {
+    await Messaging.toAllContent({action: 'get-tab-id'});
+    assert.deepEqual(sent, [1,2]);
+    assert.deepEqual(data.injectedContentScriptTabs, [2]);
+  } finally {SessionStorage.instance = originalArea; Messaging.toContent = originalSend; Shared.pageType = originalPage;}
+});
+
+test('closing a tab dispatches cleanup even if its injection reservation is still pending', async () => {
+  let removed!: (id: number) => Promise<void>;
+  const fake = (globalThis as any).browser;
+  fake.tabs = {onRemoved: {hasListener: () => false, addListener(fn: typeof removed) {removed = fn;}}};
+  const originalPage = Shared.pageType;
+  const originalWait = Shared.waitForInit;
+  const originalEvents = Shared.events;
+  const cleaned: number[] = [];
+  Shared.pageType = 'background';
+  Shared.waitForInit = async () => {};
+  Shared.events = {dispatch: async (_event: string, _specifier: null, data: {tabId: number}) => {cleaned.push(data.tabId);}} as never;
+  try {
+    Messaging.addListeners();
+    await removed(42);
+    assert.deepEqual(cleaned, [42]);
+  } finally {Shared.pageType = originalPage; Shared.waitForInit = originalWait; Shared.events = originalEvents;}
+});

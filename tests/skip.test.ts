@@ -4,6 +4,8 @@ import { JSDOM } from 'jsdom';
 import { SkipEngine } from '../src/skip/engine';
 import { DEFAULT_PREFERENCES, normalizeSettings, serviceForHost, SkipPreferences } from '../src/skip/model';
 
+import { createManifest } from '../scripts/manifest';
+
 let dom: JSDOM;
 afterEach(() => dom?.window.close());
 function fixture(markup: string, service: 'netflix' | 'amazon-prime' | 'hbo-max' = 'netflix', initial: Partial<SkipPreferences> = {}) {
@@ -89,4 +91,36 @@ test('HBO intro and next-episode selectors follow their preferences', () => {
 test('Prime next-up recommendations require an identified episode', () => {
   const f = fixture('<button class="nextupcard-button">Watch now</button>','amazon-prime',{credits:true});
   f.engine.scan(f.root,10000);assert.equal(f.count(),0);
+});
+test('Max domain maps to HBO Max and resists lookalikes', () => {
+  assert.equal(serviceForHost('play.max.com'),'hbo-max');
+  assert.equal(serviceForHost('max.com'),'hbo-max');
+  assert.equal(serviceForHost('max.com.attacker.example'),null);
+  assert.equal(serviceForHost('notmax.com'),null);
+});
+test('extension manifest requests the Max host', () => {
+  assert.ok(createManifest('0.0.0').host_permissions.includes('*://*.max.com/*'));
+});
+test('Prime text fallback skips localized intros without the skipelement class', () => {
+  const f = fixture('<button>Vorspann überspringen</button>','amazon-prime');
+  f.engine.scan(f.root,10000);assert.equal(f.count(),1);
+});
+test('Prime text fallback covers the Turkish intro spelling', () => {
+  const f = fixture('<button>Jeneriği atla</button>','amazon-prime');
+  f.engine.scan(f.root,10000);assert.equal(f.count(),1);
+});
+test('Prime text fallback respects the recap preference separately', () => {
+  const f = fixture('<button>Skip recap</button>','amazon-prime',{intro:true,recap:false});
+  f.engine.scan(f.root,10000);assert.equal(f.count(),0);
+  f.preferences.recap = true;f.engine.scan(f.root,12000);assert.equal(f.count(),1);
+});
+test('Prime text fallback never clicks ordinary page buttons', () => {
+  const f = fixture('<button>Buy now</button><button>More info</button>','amazon-prime');
+  f.engine.scan(f.root,10000);assert.equal(f.count(),0);
+});
+
+test('Prime text fallback leaves bonus titles containing intro or recap untouched', () => {
+  const f = fixture('<button>Introduction</button><button>Watch introduction</button><button>Recap featurette</button><button>Skip trailer</button>', 'amazon-prime');
+  f.engine.scan(f.root, 10000);
+  assert.equal(f.count(), 0);
 });

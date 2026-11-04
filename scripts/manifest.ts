@@ -8,6 +8,7 @@ const hosts = [
   '*://*.amazon.de/*',
   '*://*.hbo.com/*',
   '*://*.hbomax.com/*',
+  '*://*.max.com/*',
 ];
 export function createManifest(version: string) {
   return {

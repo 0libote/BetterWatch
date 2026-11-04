@@ -54,6 +54,18 @@ export class Service implements ServiceValues {
 		registerService(this.id, this);
 	}
 
+	matchesUrl(url: string): boolean {
+		try {
+			const { protocol, hostname } = new URL(url);
+			return (protocol === 'https:' || protocol === 'http:') && this.hostPatterns.some(pattern => {
+				const host = pattern.split('/')[2].replace(/^\*\./, '');
+				return hostname === host || hostname.endsWith(`.${host}`);
+			});
+		} catch {
+			return false;
+		}
+	}
+
 	get path(): string {
 		return `/${this.id}`;
 	}

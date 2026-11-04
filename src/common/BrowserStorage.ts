@@ -841,8 +841,8 @@ class _BrowserStorage {
 					getServices().map((service) => [
 						service.id,
 						{
-							scrobble: true,
-							sync: true,
+							scrobble: service.id !== 'hbo-max',
+							sync: service.id !== 'hbo-max',
 							autoSync: false,
 							autoSyncDays: 7,
 							lastSync: 0,
@@ -911,8 +911,8 @@ class _BrowserStorage {
 						.map((service) => [
 							service.id,
 							{
-								scrobble: true,
-								sync: true,
+								scrobble: service.id !== 'hbo-max',
+								sync: service.id !== 'hbo-max',
 								autoSync: false,
 								autoSyncDays: 7,
 								lastSync: 0,

@@ -31,6 +31,9 @@ export function HistoryPage() {
         title="Watch history"
         description="Bring past watches into Trakt, with a chance to check every match."
       />
+      {!scheduled && service === 'hbo-max' && (
+        <Notice>HBO history is experimental and may not work with current accounts. Auto-skip works independently.</Notice>
+      )}
       <div className="history-service-bar">
         <ServiceTabs
           value={scheduled ? null : service}

@@ -19,6 +19,14 @@ Covered behaviors:
 - Hidden/disabled controls, service/action switches, missing video elements.
 - Click cooldown, episode navigation, and opt-in credits/keep-watching.
 - Prime and HBO shared intro/recap preference handling and known selectors.
+- Max host coverage, localized Prime fallback labels, and unrelated bonus
+  buttons containing intro/recap text.
+- Background wakeup registration, startup buffering, duplicate updates,
+  full navigation, concurrent tabs, and retry after an injection failure.
+- Streaming-only cookie forwarding, bearer API headers, request cancellation,
+  and continued broadcast delivery after a tab disconnects.
+- Current/legacy Trakt correction URLs, rejection of invalid hosts/paths,
+  app episode links, and cached suggestion lookups.
 - Prime recommendation controls without an identified next episode.
 - OAuth callback state rejection/acceptance before code exchange.
 - Waiting for authorization before playback lookup, and beginning tracking
@@ -90,8 +98,10 @@ These require an authenticated Chrome profile and streaming subscriptions.
    messages wake it and pause/stop still reach Trakt.
 7. Load Netflix history, inspect dates/progress, correct a match, and sync a
    small selected sample. Repeat syncing to check duplicate handling.
-8. Repeat playback, skips, matching, and history on English Prime Video and
-   HBO Max. Verify current account/region endpoints before claiming support.
+8. Repeat playback, skips, matching, and history on English Prime Video.
+   HBO tracking/history are experimental and off by default on new installs;
+   verify current account/region endpoints before enabling or claiming support.
+   Check auto-skip separately on both hbomax.com and max.com.
 9. Opt into scheduled sync and verify the alarm opens the appropriate
    history page and preserves profile context.
 10. Simulate token expiration, revoked authorization, temporary network

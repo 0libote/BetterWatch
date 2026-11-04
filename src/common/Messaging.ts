@@ -192,12 +192,9 @@ class _Messaging {
 	}
 
 	private onTabRemoved = (tabId: number) => {
-		void SessionStorage.get('injectedContentScriptTabs').then((values) => {
-			const injectedContentScriptTabs = new Set(values.injectedContentScriptTabs ?? []);
-			if (injectedContentScriptTabs.has(tabId)) {
-				void Shared.events.dispatch('CONTENT_SCRIPT_DISCONNECT', null, { tabId });
-			}
-		});
+		return Shared.waitForInit()
+			.then(() => Shared.events.dispatch('CONTENT_SCRIPT_DISCONNECT', null, { tabId }))
+			.catch(err => Shared.errors.log('Failed to clean up closed tab.', err));
 	};
 
 	private onMessage = (
@@ -307,7 +304,12 @@ class _Messaging {
 		const values = await SessionStorage.get('injectedContentScriptTabs');
 		const injectedContentScriptTabs = new Set(values.injectedContentScriptTabs ?? []);
 		for (const tabId of injectedContentScriptTabs) {
-			await this.toContent(message, tabId);
+			try {
+				await this.toContent(message, tabId);
+			} catch {
+				// A closed or navigating tab must not prevent delivery to other players.
+				await SessionStorage.updateInjectedTab(tabId, false);
+			}
 		}
 	}
 }

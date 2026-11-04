@@ -14,6 +14,11 @@ Original MIT license: `licenses/UNIVERSAL-TRAKT-SCROBBLER-MIT.txt`.
 
 Universal Trakt Scrobbler source snapshot: `555b8976d1a043bf7a0160223dced83a75030190`.
 
+Additional Universal Trakt Scrobbler fixes adapted for background wakeup/tab
+serialization (`2c8c319ec5d1018e42cd44b58addb6883f25405c`) and Trakt app links /
+correction lookups (`24529ee48637e8e10ee2ade9bfd61921eabf46df`). BetterWatch also
+serializes session bookkeeping across tabs and recovers failed injections.
+
 Streaming enhanced source snapshot: `12c9d1a9b7e8cf4300f903ad1da1ae115596bb4f`.
 
 ## Streaming enhanced (Netflix-Prime-Auto-Skip)
@@ -22,6 +27,9 @@ https://github.com/Dreamlinerm/Netflix-Prime-Auto-Skip
 
 The service-specific skip selectors and skip-button behavior in `src/skip/`
 are adapted from this project, rewritten to run independently of Trakt.
+Max host coverage and localized Prime fallback labels were rechecked against
+Streaming enhanced `1b19523091b399a14408790629c93bf9c966efb7`; BetterWatch requires
+recognized skip commands for buttons without upstream's selector class.
 Original GPL license: `licenses/STREAMING-ENHANCED-GPL-3.0.txt`.
 
 BetterWatch modifications: restrict the service catalog and builds to Chrome,
