@@ -25,7 +25,7 @@ export function createManifest(version: string) {
     },
     background: { service_worker: 'background.js' },
     action: {
-      default_title: 'BetterWatch',
+      default_title: 'Open BetterWatch controls',
       default_icon: 'images/betterwatch-48.png',
     },
     options_ui: { page: 'app.html#/settings', open_in_tab: true },

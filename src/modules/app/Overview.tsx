@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import browser from "webextension-polyfill";
 import { createScrobbleItem } from "@models/Item";
 import { Shared } from "@common/Shared";
 import { useAppState } from "./state";
-import { Icon, PageHeading, Preference, ServiceMark } from "./ui";
+import { Icon, PageHeading, ServiceMark, Toggle } from "./ui";
 import {
   SERVICE_IDS,
   SERVICE_NAMES,
@@ -52,10 +53,11 @@ export function Timeline({ prefs }: { prefs: SkipPreferences }) {
   );
 }
 export function Overview() {
-  const { skip, connected, playing, options, saveSkip, saving, notify } =
+  const { skip, connected, playing, notify } =
     useAppState();
   const current =
     connected && playing?.item ? createScrobbleItem(playing.item) : null;
+  const [previewService, setPreviewService] = useState<SkipService>("netflix");
   const active = SERVICE_IDS.filter((id) => skip[id].enabled).length;
   const focusPlayer = async () => {
     try {
@@ -71,14 +73,15 @@ export function Overview() {
   return (
     <>
       <PageHeading
-        title="Your watch setup"
-        description="Less clicking between you and your next episode."
+        title="Your watch controls"
+        description="Set your skips, connect Trakt, and get back to watching."
       >
         <span className={`status-badge ${active ? "positive" : ""}`}>
           <i />
           {active ? "Auto-skip is ready" : "Auto-skip is paused"}
         </span>
       </PageHeading>
+      <ServiceControls />
       <div className="overview-hero">
         <section className={`watch-stage ${current ? "is-playing" : ""}`}>
           <div className="stage-top">
@@ -93,11 +96,14 @@ export function Overview() {
                   : "Now watching"
                 : "Your next watch"}
             </span>
-            <span className="tiny-label">
-              {current
-                ? SERVICE_NAMES[current.serviceId as SkipService]
-                : "Sit back. Settle in."}
-            </span>
+            {current ? (
+              <span className="tiny-label">{SERVICE_NAMES[current.serviceId as SkipService]}</span>
+            ) : (
+              <select className="preview-service" aria-label="Playback preview service"
+                value={previewService} onChange={event => setPreviewService(event.target.value as SkipService)}>
+                {SERVICE_IDS.map(id => <option key={id} value={id}>{SERVICE_NAMES[id]}</option>)}
+              </select>
+            )}
           </div>
           <div className="stage-content">
             <span className="stage-play">
@@ -158,18 +164,18 @@ export function Overview() {
                 <button
                   className="button primary"
                   onClick={() =>
-                    void browser.tabs.create({ url: SERVICE_URLS.netflix })
+                    void browser.tabs.create({ url: SERVICE_URLS[previewService] })
                   }
                 >
                   <Icon name="play" size={16} />
-                  Open Netflix
+                  Open {SERVICE_NAMES[previewService]}
                 </button>
-                <Link className="button quiet" to="/auto-skip">
+                <Link className="button quiet" to={`/auto-skip?service=${previewService}`}>
                   Customize auto-skip
                   <Icon name="chevron" size={15} />
                 </Link>
               </div>
-              <Timeline prefs={skip.netflix} />
+              <Timeline prefs={skip[previewService]} />
             </>
           )}
         </section>
@@ -208,104 +214,77 @@ export function Overview() {
           </span>
         </section>
       </div>
+    </>
+  );
+}
+
+const skipActions = [
+  {key: 'intro', label: 'Skip intros'},
+  {key: 'recap', label: 'Skip recaps'},
+  {key: 'credits', label: 'Skip credits'},
+  {key: 'continueWatching', label: 'Keep watching'},
+] as const;
+
+function ServiceControls() {
+  const {skip, connected, options, saveSkip, saving} = useAppState();
+  return (
+    <section className="service-controls" aria-labelledby="service-controls-title">
       <div className="section-heading">
         <div>
-          <h2>Your streaming services</h2>
-          <p>One place to make each service feel a little better.</p>
+          <h2 id="service-controls-title">Service controls</h2>
+          <p>Changes save automatically and apply to open player tabs.</p>
         </div>
-        <Link to="/auto-skip" className="text-button">
-          Manage services
-          <Icon name="chevron" size={16} />
-        </Link>
+        <Link to="/settings" className="text-button"><Icon name="settings" size={16} />All settings</Link>
       </div>
-      <div className="service-grid">
-        {SERVICE_IDS.map((id) => {
+      <div className="control-console">
+        <div className="control-columns" aria-hidden="true">
+          <span>Streaming service</span>
+          {skipActions.map(action => <span key={action.key}>{action.label}</span>)}
+          <span>Auto-skip</span>
+        </div>
+        {SERVICE_IDS.map(id => {
           const prefs = skip[id];
-          const count =
-            Number(prefs.intro) +
-            Number(prefs.recap) +
-            Number(prefs.credits) +
-            (id === "netflix" ? Number(prefs.continueWatching) : 0);
+          const name = SERVICE_NAMES[id];
           return (
-            <section className="service-card" key={id}>
-              <div className="service-card-top">
-                <ServiceMark service={id} />
-                <span
-                  className={`status-dot ${prefs.enabled ? "active" : ""}`}
-                  title={
-                    prefs.enabled ? "Auto-skip enabled" : "Auto-skip paused"
-                  }
-                />
+            <article className={`service-control-row ${prefs.enabled ? 'is-enabled' : ''}`} key={id} aria-label={`${name} controls`}>
+              <div className="control-service">
+                <ServiceMark service={id} small />
+                <div>
+                  <h3>{name}</h3>
+                  <div className="control-service-links">
+                    <Link to={`/auto-skip?service=${id}`} aria-label={`More ${name} controls`}>Customize</Link>
+                    <Link to={`/history?service=${id}`} aria-label={`${name} watch history`}>History</Link>
+                  </div>
+                  <Link className="control-trakt" to="/trakt" aria-label={`${name} Trakt settings`}>
+                    <Icon name="trakt" size={12} />
+                    {id === 'hbo-max' ? 'Tracking experimental' : connected && options.services[id]?.scrobble ? 'Tracking on' : connected ? 'Tracking off' : 'Connect Trakt to track'}
+                  </Link>
+                </div>
               </div>
-              <h3>{SERVICE_NAMES[id]}</h3>
-              <p>
-                {prefs.enabled
-                  ? `${count} skip ${count === 1 ? "preference" : "preferences"} enabled`
-                  : "Auto-skip is paused"}
-              </p>
-              <div className="service-card-bottom">
-                <span>
-                  <Icon name="trakt" size={15} />
-                  {connected && options.services[id]?.scrobble
-                    ? "Tracking enabled"
-                    : "Trakt not tracking"}
-                </span>
-                <Link
-                  to={`/auto-skip?service=${id}`}
-                  aria-label={`Customize ${SERVICE_NAMES[id]}`}
-                >
-                  <Icon name="chevron" size={18} />
-                </Link>
+              {skipActions.map(({key, label}) => (
+                <div className="control-action" key={key}>
+                  <span className="control-mobile-label">{label}</span>
+                  {key === 'continueWatching' && id !== 'netflix' ? (
+                    <span className="control-unavailable" aria-label="Available on Netflix only" title="Available on Netflix only">—</span>
+                  ) : (
+                    <Toggle label={`${name}: ${label.toLowerCase()}`} checked={prefs[key]}
+                      disabled={saving || !prefs.enabled} onChange={value => void saveSkip(id, key, value)} />
+                  )}
+                </div>
+              ))}
+              <div className="control-enable">
+                <span className="control-mobile-label">Auto-skip {prefs.enabled ? 'on' : 'paused'}</span>
+                <Toggle label={`Enable auto-skip on ${name}`} checked={prefs.enabled}
+                  disabled={saving} onChange={value => void saveSkip(id, 'enabled', value)} />
               </div>
-            </section>
+            </article>
           );
         })}
+        <div className="control-console-note">
+          <Icon name="shield" size={15} />
+          <span>Auto-skip works without an account. Credits and keep-watching are opt-in.</span>
+        </div>
       </div>
-      <div className="overview-bottom">
-        <section className="panel quick-settings">
-          <div className="panel-title">
-            <span className="icon-tile">
-              <Icon name="skip" />
-            </span>
-            <div>
-              <h2>Netflix, your way</h2>
-              <p>Your most-used skip controls, within reach.</p>
-            </div>
-            <Link className="text-button" to="/auto-skip">
-              View all
-              <Icon name="chevron" size={15} />
-            </Link>
-          </div>
-          <Preference
-            title="Skip intros"
-            description="Get straight into the episode when an intro appears."
-            checked={skip.netflix.intro}
-            disabled={saving || !skip.netflix.enabled}
-            onChange={(v) => void saveSkip("netflix", "intro", v)}
-          />
-          <Preference
-            title="Skip recaps"
-            description="Pass the recap when you’re already caught up."
-            checked={skip.netflix.recap}
-            disabled={saving || !skip.netflix.enabled}
-            onChange={(v) => void saveSkip("netflix", "recap", v)}
-          />
-        </section>
-        <section className="local-note">
-          <span className="icon-tile">
-            <Icon name="shield" />
-          </span>
-          <h3>Your browser. Your preferences.</h3>
-          <p>
-            Skip controls run on the streaming page. Trakt only starts tracking
-            after you connect your account.
-          </p>
-          <Link className="text-button" to="/settings">
-            Privacy & preferences
-            <Icon name="chevron" size={15} />
-          </Link>
-        </section>
-      </div>
-    </>
+    </section>
   );
 }

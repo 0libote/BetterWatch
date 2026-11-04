@@ -66,7 +66,8 @@ for the full process and the historical 0.1.1 version metadata discrepancy.
 All controls live in one extension page, `app.html`:
 
 - **Overview** shows the actual playback and Trakt connection state, service
-  preferences, and Netflix quick controls.
+  preferences, and direct skip controls for every service. Playback previews
+  follow the selected service.
 - **Auto-skip** gives each service its own controls and playback preview.
 - **Trakt connection** guides registration, credentials, authorization, and
   per-service tracking without leaving the workspace.

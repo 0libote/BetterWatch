@@ -19,6 +19,10 @@ section before creating the matching release tag.
 
 ### Changed
 
+- Put direct skip and enable switches for all three services on the overview,
+  with history/settings links and a service-aware playback preview. The
+  toolbar opens or focuses the full controls page.
+
 - Mark HBO tracking/history experimental and default them off for new installs.
   Preserve existing preferences and keep auto-skip independent.
 

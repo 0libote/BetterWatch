@@ -18,15 +18,21 @@ A quiet fixed sidebar anchors a spacious, left-aligned workspace:
 
 ```
 brand       page name                         connection status
-Overview    current watching / next action    Trakt connection
-Auto-skip   Netflix       Prime Video         HBO Max
-History     service controls                  local privacy note
+Overview    service        intros / recaps / credits / auto-skip
+Auto-skip   Netflix        direct controls and history links
+History     Prime Video    direct controls and history links
+Trakt       HBO Max        direct controls and history links
+            playback preview                  Trakt connection
 Trakt
 Settings
 ```
 
-Service tiles carry recognizable marks and actual preferences. The playback
-preview shows the parts an enabled setting will skip. Trakt setup uses a real
+The overview starts with a control table for all three services. Each row
+provides separate intro, recap, credit, and enable switches, plus Netflix
+keep-watching. Pausing a service disables its action switches while preserving
+them. Rows become compact labeled controls on mobile. History and detailed
+settings are linked per service. The playback preview follows the selected
+service and shows the parts its enabled settings will skip. Trakt setup uses a real
 three-step sequence, includes copying the redirect URI, and completes in the
 same page. History loads on request into a searchable, selectable table;
 matching, dates, and syncing retain the existing APIs and correction dialogs.
