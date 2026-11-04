@@ -5,6 +5,7 @@ import { TraktSync } from "@apis/TraktSync";
 import { TmdbApi } from "@apis/TmdbApi";
 import { CorrectionApi } from "@apis/CorrectionApi";
 import { Shared } from "@common/Shared";
+import { RequestError } from "@common/RequestError";
 import {
   HistorySyncSuccessData,
   ItemCorrectedData,
@@ -192,7 +193,9 @@ function HistoryWorkspace() {
       items = await api.loadHistory(20, 0, "", cancelKey);
       await decorate(items);
     } catch (e) {
-      setError(
+      if (e instanceof RequestError && e.isCanceled)
+        notify("History loading canceled. You can continue loading when ready.");
+      else setError(
         e instanceof Error && e.message.startsWith("Sign in")
           ? e.message
           : `Could not load ${service.name} history. Check that you’re signed in to the service, then try again.`,
@@ -285,8 +288,10 @@ function HistoryWorkspace() {
           false,
         );
       }
-    } catch {
-      failure();
+    } catch (err) {
+      if (err instanceof RequestError && err.isCanceled)
+        notify("Sync canceled. Review your selected watches before retrying.");
+      else failure();
     } finally {
       Shared.events.unsubscribe("HISTORY_SYNC_SUCCESS", null, success);
       Shared.events.unsubscribe("HISTORY_SYNC_ERROR", null, failure);

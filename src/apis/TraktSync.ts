@@ -1,4 +1,5 @@
 import { TraktApi } from '@apis/TraktApi';
+import { TraktAuth } from '@apis/TraktAuth';
 import { Cache, CacheItem } from '@common/Cache';
 import { Shared } from '@common/Shared';
 import { Utils } from '@common/Utils';
@@ -35,6 +36,11 @@ export interface TraktSyncNotFound {
 class _TraktSync extends TraktApi {
 	constructor() {
 		super();
+	}
+
+	override async activate(): Promise<void> {
+		if (!(await TraktAuth.validateToken())) throw new Error('Connect Trakt before using your watch history.');
+		await super.activate();
 	}
 
 	async loadHistory(
@@ -117,21 +123,41 @@ class _TraktSync extends TraktApi {
 	async sync(store: SyncStore, items: ScrobbleItem[], cancelKey = 'sync') {
 		const newItems: ScrobbleItem[] = [];
 		try {
+			await this.activate();
+			const traktHistoryItemsCache = await Cache.get('traktHistoryItems');
+			const pending: ScrobbleItem[] = [];
+			// A failed response may follow an accepted write. Recheck selected watches before retrying.
+			for (const selected of items) {
+				const item = selected.clone();
+				if (!item.trakt || !item.getWatchedDate()) throw new Error('Match and date are required for history import.');
+				await this.loadHistory(item, traktHistoryItemsCache, true, cancelKey);
+				if (item.trakt.watchedAt) {
+					item.isSelected = false;
+					newItems.push(item);
+				} else {
+					pending.push(item);
+				}
+			}
+			if (!pending.length) {
+				await Cache.set({ traktHistoryItems: traktHistoryItemsCache });
+				await store.update(newItems, true);
+				await Shared.events.dispatch('HISTORY_SYNC_SUCCESS', null, { added: { episodes: 0, movies: 0 } });
+				return;
+			}
 			const data = {
-				episodes: items
+				episodes: pending
 					.filter((item) => item.type === 'episode')
 					.map((item) => ({
 						ids: { trakt: item.trakt?.id },
 						watched_at: Utils.convertToISOString(item.getWatchedDate()),
 					})),
-				movies: items
+				movies: pending
 					.filter((item) => item.type === 'movie')
 					.map((item) => ({
 						ids: { trakt: item.trakt?.id },
 						watched_at: Utils.convertToISOString(item.getWatchedDate()),
 					})),
 			};
-			await this.activate();
 			const responseText = await this.requests.send({
 				url: this.SYNC_URL,
 				method: 'POST',
@@ -143,8 +169,7 @@ class _TraktSync extends TraktApi {
 				episodes: responseJson.not_found.episodes.map((item) => item.ids.trakt),
 				movies: responseJson.not_found.movies.map((item) => item.ids.trakt),
 			};
-			const traktHistoryItemsCache = await Cache.get('traktHistoryItems');
-			for (const item of items) {
+			for (const item of pending) {
 				if (
 					item.trakt &&
 					((item.type === 'episode' && !notFoundItems.episodes.includes(item.trakt.id)) ||
@@ -158,15 +183,24 @@ class _TraktSync extends TraktApi {
 			}
 			await Cache.set({ traktHistoryItems: traktHistoryItemsCache });
 			await store.update(newItems, true);
+			if (notFoundItems.episodes.length || notFoundItems.movies.length) {
+				throw new Error('Trakt could not find all selected titles. Review the remaining matches.');
+			}
 			await Shared.events.dispatch('HISTORY_SYNC_SUCCESS', null, {
 				added: responseJson.added,
 			});
 		} catch (err) {
 			if (Shared.errors.validate(err)) {
 				Shared.errors.error('Failed to sync history.', err);
+				// Keep the failed watches selected so they can be reviewed and retried
+				// instead of being silently dropped from the selection.
+				for (const newItem of newItems) {
+					newItem.isSelected = !newItem.trakt?.watchedAt;
+				}
 				await store.update(newItems, true);
 				await Shared.events.dispatch('HISTORY_SYNC_ERROR', null, { error: err });
 			}
+			throw err;
 		}
 	}
 }

@@ -113,9 +113,10 @@ test('playback detection waits for Trakt login and resumes in an already open ta
   let parsed = 0;
   const controller = {
     api:{id:'netflix'},
-    parser:{options:{},async parsePlayback(){parsed++;return null;}},
+    parser:{api:{id:'netflix'},options:{},async parsePlayback(){parsed++;return null;}},
   } as unknown as import('../src/common/ScrobbleController').ScrobbleController;
   Object.assign(globalThis,{window:{location:{href:'https://www.netflix.com/watch/123'},setTimeout:()=>1}});
+  BrowserStorage.options = {services:{netflix:{scrobble:true}}} as never;
   const events = new TestEvents(controller);
   delete local.auth;await events.tick();assert.equal(parsed,0);
   local.auth = auth;await events.tick();assert.equal(parsed,1);

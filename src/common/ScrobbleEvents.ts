@@ -38,6 +38,9 @@ export class ScrobbleEvents {
 	protected isPaused = true;
 	protected progress = 0.0;
 	private hasAddedListeners = false;
+	private pending: Promise<void> = Promise.resolve();
+	private generation = 0;
+	private failures = 0;
 
 	constructor(controller: ScrobbleController, options: Partial<ScrobbleEventsOptions> = {}) {
 		this.controller = controller;
@@ -60,25 +63,27 @@ export class ScrobbleEvents {
 	}
 
 	init(): void {
-		this.checkListeners();
+		void this.checkListeners();
 		Shared.events.subscribe('STORAGE_OPTIONS_CHANGE', null, this.onStorageOptionsChange);
 	}
 
-	onStorageOptionsChange = (data: StorageOptionsChangeData): void => {
+	onStorageOptionsChange = (data: StorageOptionsChangeData): Promise<void> => {
 		const serviceOption = data.options?.services?.[this.api.id];
 		if (serviceOption && 'scrobble' in serviceOption) {
-			this.checkListeners();
+			return this.checkListeners();
 		}
+		return Promise.resolve();
 	};
 
-	checkListeners(): void {
+	checkListeners(): Promise<void> {
 		const { scrobble } = Shared.storage.options.services[this.api.id];
 		if (scrobble && !this.hasAddedListeners) {
-			void this.checkForChanges();
+			this.hasAddedListeners = true;
+			this.generation++;
+			void this.runCheck();
 			if (this.parser.onClick) {
 				document.addEventListener('click', this.parser.onClick, true);
 			}
-			this.hasAddedListeners = true;
 		} else if (!scrobble && this.hasAddedListeners) {
 			if (this.changeListenerId !== null) {
 				window.clearTimeout(this.changeListenerId);
@@ -88,19 +93,48 @@ export class ScrobbleEvents {
 				document.removeEventListener('click', this.parser.onClick);
 			}
 			this.hasAddedListeners = false;
+			this.generation++;
+			this.pending = this.pending.then(() => this.controller.stopScrobble()).catch(err => {
+				if (Shared.errors.validate(err)) Shared.errors.log('Failed to stop disabled tracking.', err);
+			}).finally(() => {
+				this.isPaused = true;
+				this.playbackStarted = false;
+				this.progress = 0;
+			});
 		}
+		return this.pending;
+	}
+
+	private runCheck(): Promise<void> {
+		const generation = this.generation;
+		this.pending = this.pending.then(async () => {
+			if (!this.hasAddedListeners || generation !== this.generation) return;
+			await this.checkForChanges();
+			this.failures = 0;
+		}).catch(err => {
+			this.failures++;
+			if (Shared.errors.validate(err)) Shared.errors.log('Playback tracking will retry.', err);
+		}).finally(() => {
+			if (!this.hasAddedListeners || generation !== this.generation) return;
+			const delay = Math.min(30000, this.options.checkFrequency * 1000 * 2 ** Math.min(this.failures, 6));
+			this.changeListenerId = window.setTimeout(() => void this.runCheck(), delay);
+		});
+		return this.pending;
+	}
+
+	private isCurrent(generation: number): boolean {
+		return generation === this.generation && !!Shared.storage.options.services[this.api.id].scrobble;
 	}
 
 	protected async checkForChanges(): Promise<void> {
+		const generation = this.generation;
 		// Auto-skip can run before Trakt setup. Begin metadata lookup/tracking only
 		// after authorization, including when the user connects during playback.
 		const { auth } = await Shared.storage.get('auth');
+		if (!this.isCurrent(generation)) return;
 		if (!auth?.access_token) {
 			this.isPaused = true;
 			this.playbackStarted = false;
-			this.changeListenerId = window.setTimeout(
-				() => void this.checkForChanges(), this.options.checkFrequency * 1e3
-			);
 			return;
 		}
 		const newUrl = this.getLocation();
@@ -110,6 +144,7 @@ export class ScrobbleEvents {
 		}
 
 		const playback = await this.parser.parsePlayback();
+		if (!this.isCurrent(generation)) return;
 		if (playback) {
 			const newProgress = playback.progress;
 			if (this.progress !== newProgress) {
@@ -117,14 +152,11 @@ export class ScrobbleEvents {
 				this.progress = newProgress;
 			}
 
-			try {
-				if (playback.isPaused && !this.isPaused) {
-					await this.controller.pauseScrobble();
-				} else if (!playback.isPaused && this.isPaused) {
-					await this.controller.startScrobble();
-				}
-			} catch (_err) {
-				// Do nothing
+			if (!this.isCurrent(generation)) return;
+			if (playback.isPaused && !this.isPaused) {
+				await this.controller.pauseScrobble();
+			} else if (!playback.isPaused && this.isPaused) {
+				await this.controller.startScrobble();
 			}
 			this.playbackStarted = true;
 			this.isPaused = playback.isPaused;
@@ -135,10 +167,6 @@ export class ScrobbleEvents {
 			this.progress = 0.0;
 		}
 
-		this.changeListenerId = window.setTimeout(
-			() => void this.checkForChanges(),
-			this.options.checkFrequency * 1e3
-		);
 	}
 
 	protected async onUrlChange(oldUrl: string, newUrl: string): Promise<void> {

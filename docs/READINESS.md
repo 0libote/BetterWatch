@@ -1,3 +1,27 @@
+# Recovery follow-up — 2026-11-04
+
+Tracking and import recovery now have additional regression coverage:
+**112 tests pass**. Temporary tracking failures retry with backoff up to 30
+seconds, without reporting success locally. Disabling tracking stops the watch;
+re-enabling creates one polling loop. Expired tokens refresh before matching,
+tracking transitions, and history operations. Active-title corrections retain
+progress, and inactive tabs cannot clear another tab's current watch.
+
+History retries preserve pagination and recheck Trakt before another write.
+Failed scheduled runs retain their watches and do not advance the sync date.
+Canceled Netflix requests stop retrying, and the workspace reports cancellation
+without implying a login failure.
+
+The production extension was loaded in isolated Chromium with controlled HTTPS
+streaming/Trakt responses. Verified failed start/pause recovery, disable/re-enable,
+token refresh, title correction at 25% progress, an accepted import whose response
+failed (retry sent no second POST), and cancellation of a slow history request.
+No page JavaScript errors occurred. Scripts/results are retained locally in
+`/tmp/betterwatch-recovery/`. No real accounts or history writes were used.
+The real-account and HBO production limits below still apply.
+
+---
+
 # Readiness update — 2026-11-04
 
 **Status: basic local development use, with HBO tracking/history experimental.**

@@ -14,6 +14,8 @@ import { PartialDeep } from 'type-fest';
 import browser, { Alarms as WebExtAlarms } from 'webextension-polyfill';
 
 class _AutoSync {
+	private isSyncing = false;
+
 	async initFromBackground() {
 		const existingAlarm = await browser.alarms.get('check-auto-sync');
 		if (existingAlarm) {
@@ -71,6 +73,20 @@ class _AutoSync {
 	}
 
 	private async sync(services: Service[], now: number) {
+		// The hourly alarm can fire while a previous run is still importing; running twice
+		// would reset pagination mid-flight and advance lastSync on partial results.
+		if (this.isSyncing) {
+			return;
+		}
+		this.isSyncing = true;
+		try {
+			await this.syncServices(services, now);
+		} finally {
+			this.isSyncing = false;
+		}
+	}
+
+	private async syncServices(services: Service[], now: number) {
 		let { syncCache } = await Shared.storage.get('syncCache');
 		if (!syncCache) {
 			syncCache = {
@@ -82,6 +98,7 @@ class _AutoSync {
 
 		for (const service of services) {
 			let wasCanceled = false;
+			let hasFailed = false;
 			let hasLoadedHistory = false;
 
 			const serviceValue = Shared.storage.options.services[service.id];
@@ -119,12 +136,13 @@ class _AutoSync {
 					);
 
 					const missingWatchedDate = items.some((item) => item.isMissingWatchedDate());
-					if (missingWatchedDate || foundItems.length !== items.length) {
+					if (missingWatchedDate || foundItems.length !== items.length || items.some(item => !item.trakt?.watchedAt)) {
 						throw new Error('Items are either missing the watched date or have not been found');
 					}
 				}
 			} catch (err) {
 				if (Shared.errors.validate(err)) {
+					hasFailed = true;
 					syncCache.failed = true;
 					Shared.errors.log(`Failed to auto sync ${service.id}`, err);
 				} else if (err instanceof RequestError && err.isCanceled) {
@@ -135,10 +153,10 @@ class _AutoSync {
 			api.reset();
 			await store.resetData();
 
-			// Only move `lastSync` forward when the history was actually loaded. If loading failed,
-			// nothing was seen, and advancing the date would hide everything watched since the
-			// previous sync behind the last sync date without it ever being synced.
-			if (!wasCanceled && hasLoadedHistory) {
+			// Only move `lastSync` forward when the history was actually loaded and synced.
+			// Advancing it after a failure would hide everything watched since the previous
+			// sync behind the last sync date without it ever being synced.
+			if (!wasCanceled && !hasFailed && hasLoadedHistory) {
 				const partialServiceValue = partialOptions.services?.[service.id] || {};
 				partialServiceValue.lastSync = now;
 				if (items[0]?.id) {
@@ -149,7 +167,12 @@ class _AutoSync {
 						[service.id]: partialServiceValue,
 					},
 				});
-				syncCache.items.unshift(...items.map((item) => item.save()));
+			}
+			if (hasLoadedHistory && !wasCanceled) {
+				const watches = [...syncCache.items, ...items.map(item => item.save())];
+				syncCache.items = Array.from(new Map(watches.map(item => [
+					`${item.serviceId}/${item.id}/${item.watchedAt ?? ''}`, item,
+				])).values()).sort((a, b) => (b.watchedAt ?? 0) - (a.watchedAt ?? 0));
 			}
 		}
 

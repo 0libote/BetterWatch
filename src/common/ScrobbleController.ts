@@ -5,6 +5,7 @@ import { Cache } from '@common/Cache';
 import { ItemCorrectedData, StorageOptionsChangeData } from '@common/Events';
 import { getScrobbleParser, ScrobbleParser } from '@common/ScrobbleParser';
 import { Shared } from '@common/Shared';
+import { RequestError } from '@common/RequestError';
 import { createTraktScrobbleItem } from '@models/TraktItem';
 
 const scrobbleControllers = new Map<string, ScrobbleController>();
@@ -72,12 +73,12 @@ export class ScrobbleController {
 			try {
 				item.trakt = await TraktSearch.find(item, caches, correction);
 			} catch (err) {
-				item.trakt = null;
+				if (err instanceof RequestError && err.status === 404) item.trakt = null;
 				throw err;
 			}
 			await Cache.set(caches);
 		}
-		if (!item.trakt) {
+		if (!item.trakt || !Shared.storage.options.services[this.api.id].scrobble) {
 			return;
 		}
 		item.trakt.progress = item.progress;
@@ -143,11 +144,13 @@ export class ScrobbleController {
 			return;
 		}
 		const item = this.parser.getItem();
-		if (!item) {
+		if (!item || item.id !== data.oldItem.id || item.serviceId !== data.oldItem.serviceId) {
 			return;
 		}
+		const progress = item.progress;
 		await this.updateProgress(0.0);
-		await this.stopScrobble();
+		await TraktScrobble.stop(item);
+		item.progress = progress;
 		item.trakt = createTraktScrobbleItem(data.newItem.trakt);
 		await this.startScrobble();
 	};

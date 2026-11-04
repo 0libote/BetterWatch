@@ -7,6 +7,17 @@ section before creating the matching release tag.
 
 ### Fixed
 
+- Retry temporary playback failures with bounded backoff and keep tracking
+  status unchanged until Trakt accepts the request. Refresh expired tokens
+  during matching, playback, and history operations.
+- Stop the current watch when tracking is disabled, prevent duplicate polling
+  after re-enabling, and keep inactive tabs from clearing another tab's watch.
+- Preserve playback progress when correcting an active title.
+- Preserve history pagination on failure, stop retrying canceled Netflix
+  requests, and keep failed scheduled imports available for review.
+- Recheck selected watches before import retries, and advance scheduled sync
+  dates only after confirmed success. Report cancellation without login errors.
+
 - Send streaming-session cookies from Chrome's background requests, while
   keeping bearer-token API calls free of browser cookies.
 - Register tracking listeners before worker initialization, serialize tab

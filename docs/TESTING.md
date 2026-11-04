@@ -14,6 +14,12 @@ The Trakt tests use a mock extension environment and no network requests.
 
 Covered behaviors:
 
+- Tracking retry/backoff, stop on disable, single-loop re-enable, token refresh
+  during playback and title matching, and active-title correction progress.
+- Inactive-tab ownership and late stop responses after another tab starts.
+- Canceled/failed history pagination, ambiguous write retries, partial import
+  failures, scheduled retry queues, and overlapping scheduled runs.
+
 - Supported host boundaries and malformed preference recovery.
 - Netflix intro/preplay recap selectors, including a non-English intro.
 - Hidden/disabled controls, service/action switches, missing video elements.

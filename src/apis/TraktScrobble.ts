@@ -1,4 +1,5 @@
 import { TraktApi } from '@apis/TraktApi';
+import { TraktAuth } from '@apis/TraktAuth';
 import { Shared } from '@common/Shared';
 import { createScrobbleItem, ScrobbleItem } from '@models/Item';
 import { TraktScrobbleItem } from '@models/TraktItem';
@@ -43,16 +44,11 @@ class _TraktScrobble extends TraktApi {
 			return;
 		}
 		await this.send(item.trakt, this.START);
-		let { scrobblingDetails } = await Shared.storage.get('scrobblingDetails');
-		if (scrobblingDetails?.tabId === Shared.tabId) {
-			scrobblingDetails.isPaused = false;
-		} else {
-			scrobblingDetails = {
-				item: item.save(),
-				tabId: Shared.tabId,
-				isPaused: false,
-			};
-		}
+		const scrobblingDetails = {
+			item: item.save(),
+			tabId: Shared.tabId,
+			isPaused: false,
+		};
 		await Shared.storage.set({ scrobblingDetails }, false);
 		await Shared.events.dispatch('SCROBBLE_START', null, scrobblingDetails);
 	}
@@ -61,9 +57,11 @@ class _TraktScrobble extends TraktApi {
 		if (!item.trakt) {
 			return;
 		}
+		const { scrobblingDetails: current } = await Shared.storage.get('scrobblingDetails');
+		if (!current || current.tabId !== Shared.tabId || current.item.id !== item.id || current.item.serviceId !== item.serviceId) return;
 		await this.send(item.trakt, this.PAUSE);
 		const { scrobblingDetails } = await Shared.storage.get('scrobblingDetails');
-		if (scrobblingDetails) {
+		if (scrobblingDetails?.tabId === current.tabId && scrobblingDetails.item.id === current.item.id && scrobblingDetails.item.serviceId === current.item.serviceId) {
 			scrobblingDetails.isPaused = true;
 			await Shared.storage.set({ scrobblingDetails }, false);
 			await Shared.events.dispatch('SCROBBLE_PAUSE', null, scrobblingDetails);
@@ -75,6 +73,7 @@ class _TraktScrobble extends TraktApi {
 		if (!scrobblingDetails) {
 			return;
 		}
+		if (item && (scrobblingDetails.tabId !== Shared.tabId || scrobblingDetails.item.id !== item.id || scrobblingDetails.item.serviceId !== item.serviceId)) return;
 		if (!item) {
 			item = createScrobbleItem(scrobblingDetails.item);
 		}
@@ -84,6 +83,8 @@ class _TraktScrobble extends TraktApi {
 		if (item.trakt) {
 			await this.send(item.trakt, this.STOP);
 		}
+		const { scrobblingDetails: latest } = await Shared.storage.get('scrobblingDetails');
+		if (latest?.tabId !== scrobblingDetails.tabId || latest.item.id !== scrobblingDetails.item.id || latest.item.serviceId !== scrobblingDetails.item.serviceId) return;
 		await Shared.storage.remove('scrobblingDetails', false);
 		await Shared.events.dispatch('SCROBBLE_STOP', null, scrobblingDetails);
 	}
@@ -99,6 +100,7 @@ class _TraktScrobble extends TraktApi {
 				},
 				progress: item.progress,
 			};
+			if (!(await TraktAuth.validateToken())) throw new Error('Connect Trakt before tracking playback.');
 			await this.activate();
 			await this.requests.send({
 				url: `${this.SCROBBLE_URL}${path}`,
@@ -117,6 +119,7 @@ class _TraktScrobble extends TraktApi {
 					error: err,
 				});
 			}
+			throw err;
 		}
 	}
 }

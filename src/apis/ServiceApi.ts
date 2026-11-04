@@ -150,6 +150,13 @@ export abstract class ServiceApi {
 		cancelKey = 'default'
 	): Promise<ScrobbleItem[]> {
 		let items: ScrobbleItem[] = [];
+		// Snapshot pagination so a failed run can be retried from the same spot instead of
+		// resuming mid-page and skipping watches.
+		const savedPage = this.nextHistoryPage;
+		const savedUrl = this.nextHistoryUrl;
+		const savedEnd = this.hasReachedHistoryEnd;
+		const savedCheckedCache = this.hasCheckedHistoryCache;
+		const savedLeftover = this.leftoverHistoryItems;
 		try {
 			const caches = await Cache.get(['history', 'historyItemsToItems', 'items']);
 			let historyCache = caches.history.get(this.id);
@@ -265,10 +272,15 @@ export abstract class ServiceApi {
 					caches.items.set(itemDatabaseId, item.save());
 				}
 			}
-			await store.setData({ items, hasReachedEnd, hasReachedLastSyncDate });
 			caches.history.set(this.id, historyCache);
 			await Cache.set(caches);
+			await store.setData({ items, hasReachedEnd, hasReachedLastSyncDate });
 		} catch (err) {
+			this.nextHistoryPage = savedPage;
+			this.nextHistoryUrl = savedUrl;
+			this.hasReachedHistoryEnd = savedEnd;
+			this.hasCheckedHistoryCache = savedCheckedCache;
+			this.leftoverHistoryItems = savedLeftover;
 			if (Shared.errors.validate(err)) {
 				Shared.errors.error('Failed to load history.', err);
 				await Shared.events.dispatch('SERVICE_HISTORY_LOAD_ERROR', null, {

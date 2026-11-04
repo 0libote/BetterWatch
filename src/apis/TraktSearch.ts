@@ -1,6 +1,7 @@
 import { CorrectionApi } from '@apis/CorrectionApi';
 import { TmdbApi } from '@apis/TmdbApi';
 import { TraktApi } from '@apis/TraktApi';
+import { TraktAuth } from '@apis/TraktAuth';
 import { CacheItems } from '@common/Cache';
 import { RequestError } from '@common/RequestError';
 import { Shared } from '@common/Shared';
@@ -74,6 +75,11 @@ export type ExactItemDetails =
 class _TraktSearch extends TraktApi {
 	constructor() {
 		super();
+	}
+
+	override async activate(): Promise<void> {
+		if (!(await TraktAuth.validateToken())) throw new Error('Connect Trakt before using your watch history.');
+		await super.activate();
 	}
 
 	async find(

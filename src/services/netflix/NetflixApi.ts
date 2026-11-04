@@ -6,6 +6,7 @@ import {
 	NetflixPlaybackMetadata,
 } from '@/netflix/NetflixProgress';
 import { ServiceApi, ServiceApiSession } from '@apis/ServiceApi';
+import { RequestError } from '@common/RequestError';
 import { Requests } from '@common/Requests';
 import { ScriptInjector } from '@common/ScriptInjector';
 import { Shared } from '@common/Shared';
@@ -223,6 +224,10 @@ class _NetflixApi extends ServiceApi {
 				});
 			} catch (err) {
 				lastError = err;
+				if (err instanceof RequestError && err.isCanceled) {
+					// A canceled request must not be retried.
+					throw err;
+				}
 				if (attempt < maxRetries) {
 					await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
 				}
@@ -246,6 +251,7 @@ class _NetflixApi extends ServiceApi {
 			if (Shared.errors.validate(err)) {
 				Shared.errors.log(`Failed to activate ${this.id} API`, err);
 			}
+			if (err instanceof RequestError && err.isCanceled) throw err;
 			throw new Error('Failed to activate API');
 		}
 	}
@@ -309,6 +315,10 @@ class _NetflixApi extends ServiceApi {
 					break;
 				}
 			} catch (err) {
+				if (err instanceof RequestError && err.isCanceled) {
+					// A canceled request must not be retried.
+					throw err;
+				}
 				if (attempt === maxRetries) {
 					throw err;
 				}
@@ -489,7 +499,11 @@ class _NetflixApi extends ServiceApi {
 					this.metadataUrlTemplate = template;
 					return metadata;
 				}
-			} catch (_err) {
+			} catch (err) {
+				if (err instanceof RequestError && err.isCanceled) {
+					// A canceled request must not fall through to the next URL variation.
+					throw err;
+				}
 				// Try the next URL variation
 			}
 		}
