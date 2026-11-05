@@ -9,6 +9,13 @@ controls, speed sliders, and non-focused services remain intentionally out of
 scope; the HBO tracking/history experimental limit and the real-account gate
 below still apply. **117 tests pass.**
 
+Verified 2026-11-05 in real Chromium 156.0.8078.79 (headless, fresh profiles):
+the shipped `build/chrome` was loaded unpacked and each service fixture
+(Netflix intro, Prime recap, Max intro over local HTTPS with host-resolver
+mapping, real-time CDP polling) was skipped exactly once with no extension
+errors. Fixture harness in `/tmp/opencode/fixture/`; dummy pages only, no
+real accounts or history writes.
+
 ---
 
 # Recovery follow-up — 2026-11-04
