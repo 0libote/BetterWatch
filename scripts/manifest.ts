@@ -1,5 +1,7 @@
 const hosts = [
   '*://*.netflix.com/*',
+  '*://*.netflix.ca/*',
+  '*://*.netflix.com.au/*',
   '*://*.primevideo.com/*',
   '*://*.amazon.com/*',
   '*://*.amazon.co.jp/*',

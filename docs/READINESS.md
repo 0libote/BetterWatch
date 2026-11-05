@@ -1,3 +1,16 @@
+# Upstream parity — 2026-11-05
+
+Compared against unchanged upstream heads (Universal Trakt Scrobbler `8dc74f1`,
+Streaming enhanced `1b19523`). Ported the remaining user-visible gaps for the
+three focused platforms: Netflix `netflix.ca`/`netflix.com.au` host coverage,
+the Filipino Prime intro label, and Netflix/Prime Video artwork (`imageUrl`)
+plumbing so history shows thumbnails without a TMDB key. Watch-credits
+controls, speed sliders, and non-focused services remain intentionally out of
+scope; the HBO tracking/history experimental limit and the real-account gate
+below still apply. **117 tests pass.**
+
+---
+
 # Recovery follow-up — 2026-11-04
 
 Tracking and import recovery now have additional regression coverage:

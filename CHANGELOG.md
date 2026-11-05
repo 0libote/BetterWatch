@@ -27,6 +27,11 @@ section before creating the matching release tag.
   clicking unrelated introduction/recap bonus features.
 - Use current Trakt app links and resolve episode suggestion links through
   their show; validate copied URLs before correcting a match.
+- Cover Netflix's Canadian and Australian domains for auto-skip and tracking,
+  matching the upstream skip extension's host list.
+- Recognize the Filipino Prime intro label without clicking bonus features.
+- Carry Netflix and Prime Video artwork into playback and history items, so
+  history shows thumbnails without requiring a TMDB key.
 
 ### Changed
 

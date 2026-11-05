@@ -25,7 +25,7 @@ export function normalizeSettings(value: unknown): SkipSettings {
   })) as SkipSettings;
 }
 export function serviceForHost(host: string): SkipService | null {
-  if (/(^|\.)netflix\.com$/i.test(host)) return 'netflix';
+  if (/(^|\.)(netflix\.com|netflix\.ca|netflix\.com\.au)$/i.test(host)) return 'netflix';
   if (/(^|\.)(primevideo\.com|amazon\.(com|co\.jp|co\.uk|com\.au|de))$/i.test(host)) return 'amazon-prime';
   if (/(^|\.)(max|hbomax|hbo)\.com$/i.test(host)) return 'hbo-max';
   return null;
@@ -54,7 +54,7 @@ const PRIME_SKIP_LABELS = new Set([
   'salta intro', 'salta riepilogo', 'omitir introducción', 'omitir resumen',
   'avançar introdução', 'pular abertura', 'pular resumo', 'intro overslaan',
   'vorspann überspringen', 'zusammenfassung überspringen', 'イントロをスキップ',
-  'pomiń wstęp', '소개 건너뛰기', 'jeneriği atla',
+  'pomiń wstęp', '소개 건너뛰기', 'jeneriği atla', 'laktawan ang intro',
 ]);
 
 // Shared intro/recap buttons must respect each individual preference.

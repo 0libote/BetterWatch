@@ -27,9 +27,12 @@ https://github.com/Dreamlinerm/Netflix-Prime-Auto-Skip
 
 The service-specific skip selectors and skip-button behavior in `src/skip/`
 are adapted from this project, rewritten to run independently of Trakt.
-Max host coverage and localized Prime fallback labels were rechecked against
+Max host coverage, Netflix regional domains, and localized Prime fallback
+labels were rechecked against
 Streaming enhanced `1b19523091b399a14408790629c93bf9c966efb7`; BetterWatch requires
-recognized skip commands for buttons without upstream's selector class.
+recognized skip commands for buttons without upstream's selector class. Netflix
+and Prime Video artwork fields were ported from Universal Trakt Scrobbler so
+history items carry thumbnails.
 Original GPL license: `licenses/STREAMING-ENHANCED-GPL-3.0.txt`.
 
 BetterWatch modifications: restrict the service catalog and builds to Chrome,
