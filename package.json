@@ -31,7 +31,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.18.5",
-    "react-window": "^2.5.2",
+    "react-window": "^2.5.3",
     "rollbar": "^4.2.0",
     "type-fest": "^5.10.0",
     "webextension-polyfill": "^0.12.0"
