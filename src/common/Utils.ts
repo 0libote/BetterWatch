@@ -79,7 +79,7 @@ class _Utils {
 	/**
 	 * Deeply merges the objects into a new object for immutability.
 	 */
-	mergeObjs<T extends Record<string, unknown>, U extends PartialDeep<T>[]>(
+	mergeObjs<T extends Record<string, unknown>, U extends PartialDeep<T, { recurseIntoArrays: false }>[]>(
 		obj: T,
 		...partialObjs: U
 	): T {

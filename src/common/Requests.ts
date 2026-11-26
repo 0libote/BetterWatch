@@ -10,13 +10,13 @@ export type RequestDetails = {
 	method: string;
 	headers?: Record<string, string>;
 	body?: unknown;
-	signal?: AbortSignal;
+	signal?: AbortSignal | undefined;
 	cancelKey?: string;
 	withHeaders?: Record<string, string>;
 };
 
 export interface RequestOptions {
-	method: RequestInit['method'];
+	method: string;
 	headers: Record<string, string>;
 	body: RequestInit['body'];
 }
@@ -242,8 +242,8 @@ class _Requests {
 				? 'include' : 'omit',
 			method: options.method,
 			headers: options.headers,
-			body: options.body,
-			signal: request.signal,
+			body: options.body ?? null,
+			signal: request.signal ?? null,
 		});
 	}
 
@@ -285,7 +285,7 @@ class _Requests {
 		const tab = await browser.tabs.get(tabId);
 		const cookies = await browser.cookies.getAll({
 			domain,
-			storeId: tab.cookieStoreId,
+			...(tab.cookieStoreId === undefined ? {} : { storeId: tab.cookieStoreId }),
 		});
 		return cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
 	}

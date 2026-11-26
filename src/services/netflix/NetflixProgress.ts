@@ -5,8 +5,8 @@
 export const UNKNOWN_NETFLIX_PROGRESS = -1;
 
 export interface NetflixHistoryProgress {
-	bookmark?: number;
-	duration?: number;
+	bookmark?: number | undefined;
+	duration?: number | undefined;
 }
 
 export interface NetflixPlaybackMetadata {

@@ -34,7 +34,7 @@ class _Tabs {
 		};
 		if (tabs.length > 0) {
 			tabProperties.index ??= tabs[0].index + 1;
-			if (Shared.storage.options.grantCookies && browser.cookies) {
+			if (Shared.storage.options.grantCookies && browser.cookies && tabs[0].cookieStoreId !== undefined) {
 				tabProperties.cookieStoreId ??= tabs[0].cookieStoreId;
 			}
 		}

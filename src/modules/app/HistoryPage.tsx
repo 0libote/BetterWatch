@@ -267,7 +267,8 @@ function HistoryWorkspace() {
           selected[0],
         );
         if (
-          (newest.watchedAt || 0) >
+          newest.watchedAt !== undefined &&
+          newest.watchedAt >
           Shared.storage.options.services[serviceId].lastSync
         )
           await Shared.storage.saveOptions({

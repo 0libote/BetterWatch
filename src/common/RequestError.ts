@@ -1,19 +1,19 @@
 import { RequestDetails } from '@common/Requests';
 
 export interface RequestErrorOptions {
-	request?: RequestDetails;
-	status?: number;
-	text?: string;
-	isCanceled?: boolean;
-	extra?: Record<string, unknown>;
+	request?: RequestDetails | undefined;
+	status?: number | undefined;
+	text?: string | undefined;
+	isCanceled?: boolean | undefined;
+	extra?: Record<string, unknown> | undefined;
 }
 
 export class RequestError extends Error {
-	request?: RequestDetails;
-	status?: number;
-	text?: string;
-	isCanceled?: boolean;
-	extra?: Record<string, unknown>;
+	request?: RequestDetails | undefined;
+	status?: number | undefined;
+	text?: string | undefined;
+	isCanceled?: boolean | undefined;
+	extra?: Record<string, unknown> | undefined;
 
 	constructor(options: RequestErrorOptions) {
 		super(JSON.stringify(options));

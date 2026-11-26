@@ -54,7 +54,7 @@ export interface HistoryCache {
 	 * when the user switches profile, since history item IDs alone (often content IDs) can match
 	 * across profiles.
 	 */
-	profileName?: string | null;
+	profileName?: string | null | undefined;
 	items: unknown[];
 }
 

@@ -9,15 +9,15 @@ export type TraktScrobbleItemValues = TraktEpisodeItemValues | TraktMovieItemVal
 export interface TraktBaseItemValues {
 	id: number;
 	tmdbId: number;
-	syncId?: number;
+	syncId?: number | undefined;
 	title: string;
 	year: number;
-	releaseDate?: number;
-	watchedAt?: number | null;
+	releaseDate?: number | undefined;
+	watchedAt?: number | null | undefined;
 	/** List of other watchedAt values available */
-	otherWatches?: number[];
+	otherWatches?: number[] | undefined;
 	progress?: number;
-	imageUrl?: string | null;
+	imageUrl?: string | null | undefined;
 }
 
 export interface TraktEpisodeItemValues extends TraktBaseItemValues {
@@ -46,14 +46,14 @@ export type TraktMovieItemParams = Omit<TraktMovieItemValues, 'type'>;
 abstract class TraktBaseItem implements TraktBaseItemValues {
 	id: number;
 	tmdbId: number;
-	syncId?: number;
+	syncId?: number | undefined;
 	title: string;
 	year: number;
-	releaseDate?: number;
-	watchedAt?: number | null;
-	otherWatches?: number[];
+	releaseDate?: number | undefined;
+	watchedAt?: number | null | undefined;
+	otherWatches?: number[] | undefined;
 	progress: number;
-	imageUrl?: string | null;
+	imageUrl?: string | null | undefined;
 
 	constructor(values: TraktBaseItemValues) {
 		this.id = values.id;
