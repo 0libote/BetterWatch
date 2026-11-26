@@ -50,7 +50,7 @@ export interface ReleaseDetails {
   sha: string;
   toolchain: string;
   changes: string;
-  previousTag?: string;
+  previousTag?: string | undefined;
   commits: { sha: string; subject: string }[];
 }
 

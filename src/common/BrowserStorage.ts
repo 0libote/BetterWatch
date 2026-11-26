@@ -341,7 +341,8 @@ class _BrowserStorage {
 			const optionsV2 = values.options as Partial<StorageValuesOptionsV2> | undefined;
 			const optionsV3 = values.options as Partial<StorageValuesOptionsV3> | undefined;
 			if (optionsV2 && optionsV3) {
-				optionsV3.services = optionsV2.streamingServices;
+				if (optionsV2.streamingServices) optionsV3.services = optionsV2.streamingServices;
+				else delete optionsV3.services;
 
 				delete optionsV2.streamingServices;
 
@@ -579,7 +580,8 @@ class _BrowserStorage {
 			const optionsV2 = values.options as Partial<StorageValuesOptionsV2> | undefined;
 			const optionsV3 = values.options as Partial<StorageValuesOptionsV3> | undefined;
 			if (optionsV2 && optionsV3) {
-				optionsV2.streamingServices = optionsV3.services;
+				if (optionsV3.services) optionsV2.streamingServices = optionsV3.services;
+				else delete optionsV2.streamingServices;
 
 				delete optionsV3.services;
 

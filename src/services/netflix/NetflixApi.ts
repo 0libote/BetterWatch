@@ -180,7 +180,7 @@ export type NetflixHistoryItemWithMetadata = (
 	| NetflixHistoryEpisodeItemWithMetadata
 	| NetflixHistoryMovieItemWithMetadata
 ) & {
-	imageUrl?: string;
+	imageUrl?: string | undefined;
 };
 
 export type NetflixHistoryEpisodeItemWithMetadata = NetflixHistoryEpisodeItem &

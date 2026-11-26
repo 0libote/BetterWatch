@@ -42,13 +42,13 @@ export interface BaseItemValues {
 	id?: string | null;
 	title: string;
 	year?: number;
-	watchedAt?: number;
+	watchedAt?: number | undefined;
 	progress?: number;
 	isHidden?: boolean;
 	isSelected?: boolean;
 	index?: number;
-	suggestions?: Suggestion[] | null;
-	imageUrl?: string | null;
+	suggestions?: Suggestion[] | null | undefined;
+	imageUrl?: string | null | undefined;
 	isLoading?: boolean;
 }
 
@@ -61,32 +61,32 @@ export interface EpisodeItemValues extends BaseItemValues {
 	 * seasons, e.g. anime episodes from Crunchyroll) rather than a per-season number, so episode
 	 * matching is allowed to fall back to resolving it against the show's season data.
 	 */
-	isAbsolute?: boolean;
+	isAbsolute?: boolean | undefined;
 	show: ShowItemValues;
-	trakt?: TraktEpisodeItemValues | null;
+	trakt?: TraktEpisodeItemValues | null | undefined;
 }
 
 export type EpisodeItemParams = Omit<EpisodeItemValues, 'type' | 'show' | 'trakt'> & {
 	show: Omit<ShowItemValues, 'type'>;
-	trakt?: TraktEpisodeItemParams | null;
+	trakt?: TraktEpisodeItemParams | null | undefined;
 };
 
 export interface ShowItemValues extends BaseItemValues {
 	type: 'show';
-	trakt?: TraktShowItemValues | null;
+	trakt?: TraktShowItemValues | null | undefined;
 }
 
 export type ShowItemParams = Omit<ShowItemValues, 'type' | 'trakt'> & {
-	trakt?: TraktShowItemParams | null;
+	trakt?: TraktShowItemParams | null | undefined;
 };
 
 export interface MovieItemValues extends BaseItemValues {
 	type: 'movie';
-	trakt?: TraktMovieItemValues | null;
+	trakt?: TraktMovieItemValues | null | undefined;
 }
 
 export type MovieItemParams = Omit<MovieItemValues, 'type' | 'trakt'> & {
-	trakt?: TraktMovieItemParams | null;
+	trakt?: TraktMovieItemParams | null | undefined;
 };
 
 abstract class BaseItem implements BaseItemValues {
@@ -94,15 +94,15 @@ abstract class BaseItem implements BaseItemValues {
 	id: string;
 	title: string;
 	year: number;
-	watchedAt?: number;
+	watchedAt?: number | undefined;
 	progress: number;
 	isHidden: boolean;
 	isSelected: boolean;
 	index: number;
-	suggestions?: Suggestion[] | null;
-	imageUrl?: string | null;
+	suggestions?: Suggestion[] | null | undefined;
+	imageUrl?: string | null | undefined;
 	isLoading: boolean;
-	trakt?: TraktItem | null;
+	trakt?: TraktItem | null | undefined;
 
 	constructor(values: BaseItemValues) {
 		this.serviceId = values.serviceId;
@@ -195,9 +195,9 @@ export class EpisodeItem extends BaseItem implements EpisodeItemValues {
 	type = 'episode' as const;
 	season: number;
 	number: number;
-	isAbsolute?: boolean;
+	isAbsolute?: boolean | undefined;
 	show: ShowItem;
-	trakt?: TraktEpisodeItem | null;
+	trakt?: TraktEpisodeItem | null | undefined;
 
 	constructor(values: EpisodeItemParams) {
 		super(values);
@@ -242,7 +242,7 @@ export class EpisodeItem extends BaseItem implements EpisodeItemValues {
 
 export class ShowItem extends BaseItem implements ShowItemValues {
 	type = 'show' as const;
-	trakt?: TraktShowItem | null;
+	trakt?: TraktShowItem | null | undefined;
 
 	constructor(values: ShowItemParams) {
 		super(values);
@@ -273,7 +273,7 @@ export class ShowItem extends BaseItem implements ShowItemValues {
 
 export class MovieItem extends BaseItem implements MovieItemValues {
 	type = 'movie' as const;
-	trakt?: TraktMovieItem | null;
+	trakt?: TraktMovieItem | null | undefined;
 
 	constructor(values: ShowItemParams) {
 		super(values);

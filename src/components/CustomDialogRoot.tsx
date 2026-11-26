@@ -1,6 +1,6 @@
 import { Dialog, DialogProps } from '@mui/material';
 
-export interface CustomDialogRootProps extends DialogProps, WithChildren, WithSx {}
+export interface CustomDialogRootProps extends Omit<DialogProps, 'sx'>, WithChildren, WithSx {}
 
 export const CustomDialogRoot = ({
 	children,

@@ -10,7 +10,7 @@ import browser from 'webextension-polyfill';
 export type TraktManualAuth = {
 	callback?: PromiseResolve<TraktAuthDetails>;
 	state?: string;
-	tabId?: number;
+	tabId?: number | undefined;
 };
 
 export type TraktAuthDetails = {
